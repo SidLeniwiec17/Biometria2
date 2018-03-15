@@ -5,8 +5,50 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Biometria2"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+         Title="MainWindow" Height="650" Width="1050">
     <Grid>
-        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="160"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column= "0">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <ScrollViewer  Grid.Row="0"  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <Image  Grid.Row="0" Name="ori"
+               Margin="5,5,5,5"
+               Stretch="None"
+               SnapsToDevicePixels="True"
+               RenderOptions.BitmapScalingMode="HighQuality"/>
+            </ScrollViewer>
+            <ScrollViewer  Grid.Row="1"  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <Image  Grid.Row="1" Name="img"
+               Margin="5,5,5,5"
+               Stretch="None"
+               SnapsToDevicePixels="True"
+               RenderOptions.BitmapScalingMode="HighQuality"/>
+            </ScrollViewer>
+        </Grid>
+
+        <Grid Grid.Column= "1">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Button Grid.Row="0" Content="Upload Photo" Grid.Column="0" Click="Load_Button" />
+            <Button Grid.Row="1" Content="Clear" Grid.Column="0" Click="Clear_Button" />
+            <Button Grid.Row="2" Content="Gray Scale" Grid.Column="0" Click="GrayScale_Button" />
+            <Button Grid.Row="3" Content="Gauss Filter" Grid.Column="0" Click="Gauss_Button" />
+        </Grid>
+        <Border Name="BlakWait" BorderBrush="Black" BorderThickness="1" Background="#80000000" Visibility="Collapsed" Grid.RowSpan="3" Grid.ColumnSpan="4" >
+            <Grid>
+                <TextBlock Margin="0" TextWrapping="Wrap" Text="Please Wait..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24" FontWeight="Bold" Foreground="#7EFFFFFF"/>
+            </Grid>
+        </Border>
     </Grid>
 </Window>
