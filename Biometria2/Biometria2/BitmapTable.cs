@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace Biometria2
     {
         public int Width { get; set; }
         public int Height { get; set; }
-
+        
         private Color[][] Image;
 
         public BitmapTable(Bitmap bitmap)

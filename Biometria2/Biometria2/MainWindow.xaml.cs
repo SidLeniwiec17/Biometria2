@@ -95,10 +95,46 @@ namespace Biometria2
 
         private async void Clear_Button(object sender, RoutedEventArgs e)
         {
+            if (!(newBmp != null && newBmpTbl != null))
+            {
+                MessageBox.Show("Load image!");
+                return;
+            }
             BlakWait.Visibility = Visibility.Visible;
             await ClearPic();
             BlakWait.Visibility = Visibility.Collapsed;
             img.Source = newBmpTbl.ToBitmapSource();
+            Console.WriteLine("Cleared.");
+        }
+
+        private async void PupilCenter_Button(object sender, RoutedEventArgs e)
+        {
+            if (!(newBmp != null && newBmpTbl != null))
+            {
+                MessageBox.Show("Load image!");
+                return;
+            }
+            BlakWait.Visibility = Visibility.Visible;
+            await RunPupilFinder();
+            BlakWait.Visibility = Visibility.Collapsed;
+            img.Source = newBmpTbl.ToBitmapSource();
+            Console.WriteLine("Pupil Center Found.");
+        }
+
+
+
+        private async void Contrast_Button(object sender, RoutedEventArgs e)
+        {
+            if (!(newBmp != null && newBmpTbl != null))
+            {
+                MessageBox.Show("Load image!");
+                return;
+            }
+            BlakWait.Visibility = Visibility.Visible;
+            await RunContrast();
+            BlakWait.Visibility = Visibility.Collapsed;
+            img.Source = newBmpTbl.ToBitmapSource();
+            Console.WriteLine("Contrast.");
         }
 
         public async Task ClearPic()
@@ -122,6 +158,22 @@ namespace Biometria2
             await Task.Run(() =>
             {
                 Helper.Gauss(newBmpTbl);
+            });
+        }       
+
+        public async Task RunPupilFinder()
+        {
+            await Task.Run(() =>
+            {
+                Tuple<int,int,int> PupCenter = Helper.PupilCenter(newBmpTbl);
+            });
+        }
+
+        public async Task RunContrast()
+        {
+            await Task.Run(() =>
+            {
+                Helper.Contrast(newBmpTbl);
             });
         }
     }
