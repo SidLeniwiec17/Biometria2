@@ -103,7 +103,7 @@ namespace Biometria2
                 return 0;
         }
 
-        public static Tuple<int, int, int> PupilCenter(BitmapTable bitmap)
+        /*public static Tuple<int, int, int> PupilCenterOld(BitmapTable bitmap)
         {
             int threads = 8;
 
@@ -164,7 +164,7 @@ namespace Biometria2
                 }
             }
             return GetItDone(finalSpectres, bitmap.Width, bitmap.Height, maxR, pictures, threads);
-        }
+        }*/
 
         public static void RunBlack(BitmapTable newBmpTbl)
         {
@@ -174,9 +174,9 @@ namespace Biometria2
             {
                 BitmapTable tempPict = new BitmapTable(newBmpTbl);
                 bigCounter = 0;
-                for (int x = newBmpTbl.Width / 10; x < newBmpTbl.Width - newBmpTbl.Width / 10; x++)
+                for (int x = newBmpTbl.Width / 8; x < newBmpTbl.Width - newBmpTbl.Width / 7; x++)
                 {
-                    for (int y = newBmpTbl.Height / 10; y < newBmpTbl.Height - newBmpTbl.Height / 10; y++)
+                    for (int y = newBmpTbl.Height / 8; y < newBmpTbl.Height - newBmpTbl.Height / 7; y++)
                     {
                         int counter = 0;
                         for (int x2 = -1; x2 < 2; x2++)
@@ -207,8 +207,85 @@ namespace Biometria2
             }
         }
 
-        public static void ThreeColors(BitmapTable newBmpTbl)
+        internal static void DrawInnerCircle(BitmapTable originalBitmapTbl, Tuple<int, int, int> pupCenter)
         {
+            int x = pupCenter.Item1;
+            int y = pupCenter.Item2;
+            int r = pupCenter.Item3;
+            try
+            {
+                originalBitmapTbl.setPixel(x, y, System.Drawing.Color.Red);
+                originalBitmapTbl.setPixel(x + 1, y, System.Drawing.Color.Red);
+                originalBitmapTbl.setPixel(x - 1, y, System.Drawing.Color.Red);
+                originalBitmapTbl.setPixel(x, y + 1, System.Drawing.Color.Red);
+                originalBitmapTbl.setPixel(x, y - 1, System.Drawing.Color.Red);
+
+                for (int t = 0; t < 360; t++)
+                {
+                    var a = (int)(x - (r * Math.Cos(t * Math.PI / 180)));
+                    var b = (int)(y - (r * Math.Sin(t * Math.PI / 180)));
+                    if (a >= 0 && b >= 0 && a < originalBitmapTbl.Width && b < originalBitmapTbl.Height)
+                    {
+                        try
+                        {
+                            originalBitmapTbl.setPixel(a, b, System.Drawing.Color.Blue);
+                        }
+                        catch (Exception e) { };
+                    }
+                }
+            }
+            catch (Exception ex) { }
+        }
+
+        public static void RemoveSingleNoises(BitmapTable btm)
+        {
+            BitmapTable tempPict = new BitmapTable(btm);
+            int counter = 0;
+            for (int x = 0; x < btm.Width; x++)
+            {
+                for (int y = 0; y < btm.Height; y++)
+                {
+                    System.Drawing.Color oldColour = btm.getPixel(x, y);
+                    if (oldColour.R == 0)
+                    {
+                        bool isAlone = true;
+
+                        for (int x2 = -1; x2 <= 1; x2++)
+                        {
+                            for (int y2 = -1; y2 <= 1; y2++)
+                            {
+                                if (x + x2 >= 0 && x + x2 < btm.Width && y + y2 >= 0 && y + y2 < btm.Height)
+                                {
+                                    var col = btm.getPixel(x + x2, y + y2);
+                                    if (col.R == 0)
+                                    {
+                                        isAlone = false;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (isAlone)
+                        {
+                            tempPict.setPixel(x, y, System.Drawing.Color.White);
+                        }
+                    }
+                }
+            }
+            Console.WriteLine(counter + " pixels removed");
+            for (int x = 0; x < btm.Width; x++)
+            {
+                for (int y = 0; y < btm.Height; y++)
+                {
+                    btm.setPixel(x, y, tempPict.getPixel(x, y));
+                }
+            }
+        }
+
+        public static int ThreeColors(BitmapTable newBmpTbl)
+        {
+            int borderColor = 255;
             int threads = 8;
             BitmapTable[] pictures = new BitmapTable[threads];
             ConcurrentBag<int> mins = new ConcurrentBag<int>();
@@ -257,6 +334,8 @@ namespace Biometria2
             int fmid1 = (fmid + fmin) / 2;
             int fmid2 = (fmax + fmid) / 2;
 
+            borderColor = fmid2;
+
             for (int x = 0; x < newBmpTbl.Width; x++)
             {
                 for (int y = 0; y < newBmpTbl.Height; y++)
@@ -287,9 +366,10 @@ namespace Biometria2
                     }
                 }
             }
+            return borderColor;
         }
 
-        public static int[][] GetEdgesForCircles(int[][][] spectres, int threads)
+        /*public static int[][] GetEdgesForCircles(int[][][] spectres, int threads)
         {
             int w = spectres[0].Length / threads;
             int maxR = spectres[0][0].Length;
@@ -316,98 +396,98 @@ namespace Biometria2
             });
 
             return edges;
-        }
+        }*/
 
-        public static Tuple<int, int, int> GetItDone(int[][][] spectres, int width, int height, int maxR, BitmapTable[] pictures, int threads)
-        {
-            int maxLeft = width;
-            int maxRight = 0;
+        /* public static Tuple<int, int, int> GetItDone(int[][][] spectres, int width, int height, int maxR, BitmapTable[] pictures, int threads)
+         {
+             int maxLeft = width;
+             int maxRight = 0;
 
-            int[][] edges = GetEdgesForCircles(spectres, threads);
+             int[][] edges = GetEdgesForCircles(spectres, threads);
 
-            ConcurrentBag<int> OutCols = new ConcurrentBag<int>();
-            ConcurrentBag<int> MaxRights = new ConcurrentBag<int>();
-            ConcurrentBag<int> MaxLefts = new ConcurrentBag<int>();
+             ConcurrentBag<int> OutCols = new ConcurrentBag<int>();
+             ConcurrentBag<int> MaxRights = new ConcurrentBag<int>();
+             ConcurrentBag<int> MaxLefts = new ConcurrentBag<int>();
 
-            int outCol = 0;
-            int w = edges.Length / threads;
-            int margin = (width / 2) - (edges.Length / 2);
-            Parallel.For(0, threads, j =>
-            {
-                int locOutCol = 0;
-                int locMaxRight = 0;
-                int locmaxLeft = width;
-                //for (int x = i * w; x < (i + 1) * w; x++)
-                for (int y = j * w; y < (j + 1) * w; y++)
-                {
-                    bool el = true;
-                    bool er = true;
+             int outCol = 0;
+             int w = edges.Length / threads;
+             int margin = (width / 2) - (edges.Length / 2);
+             Parallel.For(0, threads, j =>
+             {
+                 int locOutCol = 0;
+                 int locMaxRight = 0;
+                 int locmaxLeft = width;
+                 //for (int x = i * w; x < (i + 1) * w; x++)
+                 for (int y = j * w; y < (j + 1) * w; y++)
+                 {
+                     bool el = true;
+                     bool er = true;
 
-                    for (int i = 0; i < width / 2; i++)
-                    {
-                        int vedge2 = edges[y][1];
-                        int vedge1 = edges[y][0];
+                     for (int i = 0; i < width / 2; i++)
+                     {
+                         int vedge2 = edges[y][1];
+                         int vedge1 = edges[y][0];
 
-                        var rPix = pictures[j].getPixel(width / 2 + i, y).R;
-                        var lPix = pictures[j].getPixel(width / 2 - i, y).R;
-                        if (er && Math.Abs(rPix - vedge2) > (0.9 * vedge2))
-                        {
-                            er = false;
-                        }
-                        if (er && Math.Abs(rPix - vedge1) < (0.9 * vedge1) && (width / 2 + i) > locMaxRight)
-                        {
-                            locMaxRight = width / 2 + i;
-                            locOutCol = rPix;
-                        }
-                        if (el && Math.Abs(lPix - vedge2) > (0.9 * vedge2))
-                        {
-                            el = false;
-                        }
-                        if (el && Math.Abs(lPix - vedge1) < (0.9 * vedge1) && (width / 2 - i) < locmaxLeft)
-                        {
-                            locmaxLeft = width / 2 - i;
-                        }
-                    }
-                }
+                         var rPix = pictures[j].getPixel(width / 2 + i, y).R;
+                         var lPix = pictures[j].getPixel(width / 2 - i, y).R;
+                         if (er && Math.Abs(rPix - vedge2) > (0.9 * vedge2))
+                         {
+                             er = false;
+                         }
+                         if (er && Math.Abs(rPix - vedge1) < (0.9 * vedge1) && (width / 2 + i) > locMaxRight)
+                         {
+                             locMaxRight = width / 2 + i;
+                             locOutCol = rPix;
+                         }
+                         if (el && Math.Abs(lPix - vedge2) > (0.9 * vedge2))
+                         {
+                             el = false;
+                         }
+                         if (el && Math.Abs(lPix - vedge1) < (0.9 * vedge1) && (width / 2 - i) < locmaxLeft)
+                         {
+                             locmaxLeft = width / 2 - i;
+                         }
+                     }
+                 }
 
-                OutCols.Add(locOutCol);
-                MaxRights.Add(locMaxRight);
-                MaxLefts.Add(locmaxLeft);
-            });
+                 OutCols.Add(locOutCol);
+                 MaxRights.Add(locMaxRight);
+                 MaxLefts.Add(locmaxLeft);
+             });
 
-            for (int q = 0; q < threads; q++)
-            {
-                outCol = OutCols.ElementAt(q) > outCol ? OutCols.ElementAt(q) : outCol;
-                maxRight = MaxRights.ElementAt(q) > maxRight ? MaxRights.ElementAt(q) : maxRight;
-                maxLeft = MaxLefts.ElementAt(q) < maxLeft ? MaxLefts.ElementAt(q) : maxLeft;
-            }
+             for (int q = 0; q < threads; q++)
+             {
+                 outCol = OutCols.ElementAt(q) > outCol ? OutCols.ElementAt(q) : outCol;
+                 maxRight = MaxRights.ElementAt(q) > maxRight ? MaxRights.ElementAt(q) : maxRight;
+                 maxLeft = MaxLefts.ElementAt(q) < maxLeft ? MaxLefts.ElementAt(q) : maxLeft;
+             }
 
-            int CenterX = (maxRight - maxLeft) / 2;
-            int R = maxRight - CenterX;
-            int maxUp = height;
-            int maxDown = 0;
+             int CenterX = (maxRight - maxLeft) / 2;
+             int R = maxRight - CenterX;
+             int maxUp = height;
+             int maxDown = 0;
 
-            for (int y = 0; y < height / 2; y++)
-            {
-                var uPix = pictures[0].getPixel(CenterX, height / 2 - y).R;
-                var dPix = pictures[0].getPixel(CenterX, height / 2 + y).R;
+             for (int y = 0; y < height / 2; y++)
+             {
+                 var uPix = pictures[0].getPixel(CenterX, height / 2 - y).R;
+                 var dPix = pictures[0].getPixel(CenterX, height / 2 + y).R;
 
-                if (Math.Abs(uPix - outCol) < (0.9 * outCol))
-                {
-                    maxUp = height / 2 - y;
-                }
+                 if (Math.Abs(uPix - outCol) < (0.9 * outCol))
+                 {
+                     maxUp = height / 2 - y;
+                 }
 
-                if (Math.Abs(dPix - outCol) < (0.9 * outCol))
-                {
-                    maxDown = height / 2 + y;
-                }
+                 if (Math.Abs(dPix - outCol) < (0.9 * outCol))
+                 {
+                     maxDown = height / 2 + y;
+                 }
 
-            }
-            int CenterY = (maxDown - maxUp) / 2;
+             }
+             int CenterY = (maxDown - maxUp) / 2;
 
-            Console.WriteLine("center: " + CenterX + " , " + CenterY + " radius: " + R);
-            return new Tuple<int, int, int>(CenterX, CenterY, R);
-        }
+             Console.WriteLine("center: " + CenterX + " , " + CenterY + " radius: " + R);
+             return new Tuple<int, int, int>(CenterX, CenterY, R);
+         }*/
 
         public static int[] FindContrasts(int maxR, int x, int y, BitmapTable bitmap)
         {
@@ -442,7 +522,7 @@ namespace Biometria2
             return cList;
         }
 
-        private static Tuple<int, int> Cluster(int[] values)
+        /*private static Tuple<int, int> Cluster(int[] values)
         {
             int min = values.Min();
             int max = values.Max();
@@ -497,6 +577,83 @@ namespace Biometria2
                     max = maxs / maxC;
             }
             return new Tuple<int, int>(mid, max);
+        }*/
+
+        public static Tuple<int, int, int> PupilCenter(int borderColor, BitmapTable bitmap)
+        {
+            int threads = 8;
+            BitmapTable[] pictures = new BitmapTable[threads];
+            ConcurrentBag<int> Xs = new ConcurrentBag<int>();
+            ConcurrentBag<int> Ys = new ConcurrentBag<int>();
+            ConcurrentBag<int> Rs = new ConcurrentBag<int>();
+
+            for (int i = 0; i < threads; i++)
+            {
+                pictures[i] = new BitmapTable(bitmap);
+            }
+            int borderValue = (int)(0.85 * (double)borderColor);
+            int centerX = bitmap.Width / 2;
+            int centerY = bitmap.Height / 2;
+            int R = 1;
+            int verticalMargin = bitmap.Height / 4;
+            int horizontalMargin = bitmap.Width / 4;
+
+            int w = bitmap.Width / threads;
+
+            Parallel.For(0, threads, i =>
+            //for (int i = 0; i < threads; i++)
+            {
+                int tempX = 0;
+                int tempY = 0;
+                int tempR = 0;
+                for (int x = i * w; x < (i + 1) * w; x++)
+                {
+                    for (int y = 0; y < pictures[i].Height; y++)
+                    {
+                        if (x > horizontalMargin && x < pictures[i].Width - horizontalMargin && y > verticalMargin && y < pictures[i].Height - verticalMargin)
+                        {
+                            if(x == pictures[i].Width /2 && y == pictures[i].Height /2)
+                            {
+                                Console.WriteLine("test");
+                            }
+                            if (pictures[i].getPixel(x, y).R == 0)
+                            {
+                                int currR = 0;
+                                int[] contrasts = FindContrasts(pictures[i].Width / 4, x, y, pictures[i]);
+                                for (int c = 0; c < contrasts.Length; c++)
+                                {
+                                    if (contrasts[c] >= borderValue)
+                                    {
+                                        currR = c;
+                                        break;
+                                    }
+                                }
+                                if (currR > tempR)
+                                {
+                                    tempX = x;
+                                    tempY = y;
+                                    tempR = currR;
+                                }
+                            }
+                        }
+                    }
+                }
+                Xs.Add(tempX);
+                Ys.Add(tempY);
+                Rs.Add(tempR);
+            });
+
+            for(int i = 0; i < threads; i++)
+            {
+                if(Rs.ElementAt(i) > R)
+                {
+                    R = Rs.ElementAt(i);
+                    centerX = Xs.ElementAt(i);
+                    centerY = Ys.ElementAt(i);
+                }
+            }
+
+            return new Tuple<int, int, int>(centerX, centerY, R);
         }
     }
 }

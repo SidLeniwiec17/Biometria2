@@ -26,7 +26,7 @@ namespace Biometria2
         public BitmapTable newBmpTbl;
         public Bitmap originalBitmap;
         public BitmapTable originalBitmapTbl;
-
+        public int borderColor = 255;
         public MainWindow()
         {
             InitializeComponent();
@@ -132,6 +132,7 @@ namespace Biometria2
             await RunPupilFinder();
             BlakWait.Visibility = Visibility.Collapsed;
             img.Source = newBmpTbl.ToBitmapSource();
+            ori.Source = originalBitmapTbl.ToBitmapSource();
             Console.WriteLine("Pupil Center Found.");
         }
 
@@ -175,14 +176,23 @@ namespace Biometria2
             BlakWait.Visibility = Visibility.Visible;
             await RunGreyScale();
             await ThreeColors();
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 6; i++)
             {
                 await RunGaussFilter();
                 await RunBlack();
             }
+            await RunRemoveSingleNoises();
             BlakWait.Visibility = Visibility.Collapsed;
             img.Source = newBmpTbl.ToBitmapSource();
             Console.WriteLine("Blacked.");
+        }
+
+        public async Task RunRemoveSingleNoises()
+        {
+            await Task.Run(() =>
+            {
+                Helper.RemoveSingleNoises(newBmpTbl); ;
+            });
         }
 
         public async Task RunBlack()
@@ -205,7 +215,7 @@ namespace Biometria2
         {
             await Task.Run(() =>
             {
-                Helper.ThreeColors(newBmpTbl);
+                borderColor = Helper.ThreeColors(newBmpTbl);
             });
         }
 
@@ -229,7 +239,8 @@ namespace Biometria2
         {
             await Task.Run(() =>
             {
-                Tuple<int, int, int> PupCenter = Helper.PupilCenter(newBmpTbl);
+                Tuple<int, int, int> PupCenter = Helper.PupilCenter(borderColor, newBmpTbl);
+                Helper.DrawInnerCircle(originalBitmapTbl, PupCenter);
             });
         }
 
