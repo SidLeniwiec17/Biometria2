@@ -49,7 +49,7 @@ namespace Biometria2
             }
         }
 
-        private async Task LoadImages( BitmapImage btmi, string FileName)
+        private async Task LoadImages(BitmapImage btmi, string FileName)
         {
             img.Source = btmi;
             ori.Source = btmi;
@@ -91,6 +91,20 @@ namespace Biometria2
             BlakWait.Visibility = Visibility.Collapsed;
             img.Source = newBmpTbl.ToBitmapSource();
             Console.WriteLine("Gauss Filter.");
+        }
+
+        private async void threeColor_Button(object sender, RoutedEventArgs e)
+        {
+            if (!(newBmp != null && newBmpTbl != null))
+            {
+                MessageBox.Show("Load image!");
+                return;
+            }
+            BlakWait.Visibility = Visibility.Visible;
+            await ThreeColors();
+            BlakWait.Visibility = Visibility.Collapsed;
+            img.Source = newBmpTbl.ToBitmapSource();
+            Console.WriteLine("Three colorded.");
         }
 
         private async void Clear_Button(object sender, RoutedEventArgs e)
@@ -137,11 +151,61 @@ namespace Biometria2
             Console.WriteLine("Contrast.");
         }
 
+        private async void MoreBlacks_Button(object sender, RoutedEventArgs e)
+        {
+            if (!(newBmp != null && newBmpTbl != null))
+            {
+                MessageBox.Show("Load image!");
+                return;
+            }
+            BlakWait.Visibility = Visibility.Visible;
+            await RunBlack();
+            BlakWait.Visibility = Visibility.Collapsed;
+            img.Source = newBmpTbl.ToBitmapSource();
+            Console.WriteLine("Blacked.");
+        }
+
+        private async void Automatic_Button(object sender, RoutedEventArgs e)
+        {
+            if (!(newBmp != null && newBmpTbl != null))
+            {
+                MessageBox.Show("Load image!");
+                return;
+            }
+            BlakWait.Visibility = Visibility.Visible;
+            await RunGreyScale();
+            await ThreeColors();
+            for (int i = 0; i < 5; i++)
+            {
+                await RunGaussFilter();
+                await RunBlack();
+            }
+            BlakWait.Visibility = Visibility.Collapsed;
+            img.Source = newBmpTbl.ToBitmapSource();
+            Console.WriteLine("Blacked.");
+        }
+
+        public async Task RunBlack()
+        {
+            await Task.Run(() =>
+            {
+                Helper.RunBlack(newBmpTbl); ;
+            });
+        }
+
         public async Task ClearPic()
         {
             await Task.Run(() =>
             {
                 newBmpTbl = new BitmapTable(originalBitmapTbl);
+            });
+        }
+
+        public async Task ThreeColors()
+        {
+            await Task.Run(() =>
+            {
+                Helper.ThreeColors(newBmpTbl);
             });
         }
 
@@ -159,13 +223,13 @@ namespace Biometria2
             {
                 Helper.Gauss(newBmpTbl);
             });
-        }       
+        }
 
         public async Task RunPupilFinder()
         {
             await Task.Run(() =>
             {
-                Tuple<int,int,int> PupCenter = Helper.PupilCenter(newBmpTbl);
+                Tuple<int, int, int> PupCenter = Helper.PupilCenter(newBmpTbl);
             });
         }
 
@@ -175,6 +239,6 @@ namespace Biometria2
             {
                 Helper.Contrast(newBmpTbl);
             });
-        }
+        }        
     }
 }
