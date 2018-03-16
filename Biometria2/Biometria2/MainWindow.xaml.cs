@@ -176,7 +176,7 @@ namespace Biometria2
             BlakWait.Visibility = Visibility.Visible;
             await RunGreyScale();
             await ThreeColors();
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < 4; i++)
             {
                 await RunGaussFilter();
                 await RunBlack();

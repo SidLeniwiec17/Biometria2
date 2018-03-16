@@ -591,7 +591,7 @@ namespace Biometria2
             {
                 pictures[i] = new BitmapTable(bitmap);
             }
-            int borderValue = (int)(0.85 * (double)borderColor);
+            int borderValue = (int)((0.85 * (double)borderColor)/3);
             int centerX = bitmap.Width / 2;
             int centerY = bitmap.Height / 2;
             int R = 1;
