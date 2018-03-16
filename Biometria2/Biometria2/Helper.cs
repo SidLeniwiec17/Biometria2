@@ -165,6 +165,51 @@ namespace Biometria2
             return pupil;
         }
 
+        public void GetItDone(int[][][] spectres, int width, int height, int maxR, BitmapTable bitmap)
+        {
+            int maxLeft = width;
+            int maxRight = 0;
+            for (int y = 0; y < height; y++)
+            {
+
+                int edge1 = 0;
+                int edge2 = 0;
+                for (int x = 0; x < width; x++)
+                {
+                    var t = Cluster(spectres[x][y]);
+                    edge1 += t.Item1;
+                    edge2 += t.Item2;
+                }
+                edge1 = edge1 / maxR;
+                bool el = true;
+                bool er = true;
+
+                edge2 = edge2 / maxR;
+                for (int i = 0; i < maxR; i++)
+                {
+                    if (er && Math.Abs(bitmap.getPixel(width / 2 + i, y).R - edge2) > (0.9 * edge2))
+                    {
+                        er = false;
+                    }
+                    if (er && Math.Abs(bitmap.getPixel(width/2 + i , y).R - edge1) < (0.9 * edge1) && (width / 2 + i) > maxRight)
+                    {
+                        maxRight = width / 2 + i;
+                    }
+                    if (el && Math.Abs(bitmap.getPixel(width / 2 - i, y).R - edge2) > (0.9 * edge2))
+                    {
+                        el = false;
+                    }
+                    if (el && Math.Abs(bitmap.getPixel(width / 2 - i, y).R - edge1) < (0.9 * edge1) && (width / 2 - i) < maxLeft)
+                    {
+                        maxRight = width / 2 + i;
+                    }
+                }
+            }
+
+            int CenterX = (maxRight - maxLeft) / 2;
+            int R = maxRight - CenterX;
+        }
+
         public static int[] FindContrasts(int maxR, int x, int y, BitmapTable bitmap)
         {
             double[] coss = new double[360];
@@ -211,7 +256,7 @@ namespace Biometria2
             int midC = 0;
             int maxC = 0;
 
-            int iters = 10;
+            int iters = 5;
 
             for (int i = 0; i < iters; i++)
             {
@@ -229,7 +274,7 @@ namespace Biometria2
                     int distMax = Math.Abs(values[v] - max);
 
                     int minV = Math.Min(distMin, Math.Min(distMid, distMax));
-                    if(minV == distMin)
+                    if (minV == distMin)
                     {
                         mins += values[v];
                         minC++;
