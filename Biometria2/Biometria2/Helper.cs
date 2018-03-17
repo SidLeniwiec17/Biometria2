@@ -213,7 +213,7 @@ namespace Biometria2
             {
                 BitmapTable tempPict = new BitmapTable(newBmpTbl);
                 bigCounter = 0;
-                for (int x = 0 ; x < newBmpTbl.Width; x++)
+                for (int x = 0; x < newBmpTbl.Width; x++)
                 {
                     for (int y = 0; y < newBmpTbl.Height; y++)
                     {
@@ -289,9 +289,72 @@ namespace Biometria2
             }
         }
 
-        internal static Tuple<int, int, int> Iris(int borderColor, BitmapTable newBmpTbl, int x, int y, int r)
+        internal static Tuple<int, int, int> Iris(int borderColor, BitmapTable bitmap, int px, int py, int pr)
         {
-            throw new NotImplementedException();
+            int threads = 1;
+            BitmapTable[] pictures = new BitmapTable[threads];
+            ConcurrentBag<int> Xs = new ConcurrentBag<int>();
+            ConcurrentBag<int> Ys = new ConcurrentBag<int>();
+            ConcurrentBag<int> Rs = new ConcurrentBag<int>();
+
+            for (int i = 0; i < threads; i++)
+            {
+                pictures[i] = new BitmapTable(bitmap);
+            }
+            int borderValue = (int)((double)borderColor / 2);
+            int centerX = px;
+            int centerY = py;
+            int R = pr;
+
+            int w = 20 / threads;
+
+            //Parallel.For(0, threads, i =>
+            for (int i = 0; i < threads; i++)
+            {
+                int tempX = 0;
+                int tempY = 0;
+                int tempR = 0;
+                for (int x = px - (i * w) ; x < px + ((i + 1) * w); x++)
+                {
+                    for (int y = py - 10; y < py + 10; y++)
+                    {
+                        if (pictures[i].getPixel(x, y).R == 0)
+                        {
+                            int currR = 0;
+                            int[] contrasts = FindContrasts(pictures[i].Width / 4 + pr, x, y, pictures[i], (pr + 10));
+                            for (int c = 0; c < contrasts.Length; c++)
+                            {
+                                if (contrasts[c] >= borderValue)
+                                {
+                                    currR = c;
+                                    break;
+                                }
+                            }
+                            if (currR > tempR)
+                            {
+                                tempX = x;
+                                tempY = y;
+                                tempR = currR;
+                            }
+                        }
+                    }
+                }
+                Xs.Add(tempX);
+                Ys.Add(tempY);
+                Rs.Add(tempR);
+            }
+
+            for (int i = 0; i < threads; i++)
+            {
+                if (Rs.ElementAt(i) > R)
+                {
+                    R = Rs.ElementAt(i);
+                    centerX = Xs.ElementAt(i);
+                    centerY = Ys.ElementAt(i);
+                }
+            }
+            R = R + pr;
+            return new Tuple<int, int, int>(centerX, centerY, R);
         }
 
         internal static int FiveColors(BitmapTable newBmpTbl)
@@ -632,7 +695,7 @@ namespace Biometria2
              return new Tuple<int, int, int>(CenterX, CenterY, R);
          }*/
 
-        public static int[] FindContrasts(int maxR, int x, int y, BitmapTable bitmap)
+        public static int[] FindContrasts(int maxR, int x, int y, BitmapTable bitmap, int minR = 0)
         {
             double[] coss = new double[360];
             double[] sins = new double[360];
@@ -644,7 +707,6 @@ namespace Biometria2
             int wid = bitmap.Width;
             int hig = bitmap.Height;
             int[] cList = new int[maxR];
-            int minR = 0;
             for (int r = 0; r < maxR; r++)
             {
                 int sum = 0;
@@ -659,7 +721,14 @@ namespace Biometria2
                         counter++;
                     }
                 }
-                cList[r] = sum / counter;
+                if (counter > 0)
+                {
+                    cList[r] = sum / counter;
+                }
+                else
+                {
+                    cList[r] = 0;
+                }
             }
 
             return cList;
@@ -797,6 +866,30 @@ namespace Biometria2
             }
 
             return new Tuple<int, int, int>(centerX, centerY, R);
+        }
+
+        public static BitmapTable CuttOffIris(BitmapTable btm, Tuple<System.Drawing.Point, int> pupil, Tuple<System.Drawing.Point, int> iris)
+        {
+            BitmapTable tempPict = new BitmapTable(btm);
+
+            for (int x = 0; x < btm.Width; x++)
+            {
+                for (int y = 0; y < btm.Height; y++)
+                {
+                    if (IsInsideCircle(pupil, x, y) || !IsInsideCircle(iris, x, y))
+                    {
+                        tempPict.setPixel(x, y, System.Drawing.Color.White);
+                    }
+                }
+            }
+
+            return tempPict;
+        }
+
+        public static bool IsInsideCircle(Tuple<System.Drawing.Point, int> circle, int x, int y)
+        {
+            var dist = Math.Sqrt(((circle.Item1.X - x) * (circle.Item1.X - x)) + ((circle.Item1.Y - y) * (circle.Item1.Y - y)));
+            return dist <= circle.Item2;
         }
     }
 }

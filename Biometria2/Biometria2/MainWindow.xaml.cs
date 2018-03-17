@@ -242,6 +242,7 @@ namespace Biometria2
                 return;
             }
             BlakWait.Visibility = Visibility.Visible;
+            await RunContrast();
             await RunGreyScale();
             await RunContrast();
             await RunGaussFilter();
@@ -352,7 +353,7 @@ namespace Biometria2
         {
             await Task.Run(() =>
             {
-                Tuple<int, int, int> IrisCenter = Helper.Iris(borderColor, newBmpTbl, X, Y, R);
+                Tuple<int, int, int> IrisCenter = Helper.Iris(borderIrisColor, newBmpTbl, X, Y, R);
                 X = IrisCenter.Item1;
                 Y = IrisCenter.Item2;
                 R = IrisCenter.Item3;
