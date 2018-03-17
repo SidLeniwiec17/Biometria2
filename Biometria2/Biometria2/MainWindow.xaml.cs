@@ -27,6 +27,12 @@ namespace Biometria2
         public Bitmap originalBitmap;
         public BitmapTable originalBitmapTbl;
         public int borderColor = 255;
+        public int borderIrisColor = 255;
+
+        public int X = 0;
+        public int Y = 0;
+        public int R = 0;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -136,8 +142,6 @@ namespace Biometria2
             Console.WriteLine("Pupil Center Found.");
         }
 
-
-
         private async void Contrast_Button(object sender, RoutedEventArgs e)
         {
             if (!(newBmp != null && newBmpTbl != null))
@@ -184,7 +188,72 @@ namespace Biometria2
             await RunRemoveSingleNoises();
             BlakWait.Visibility = Visibility.Collapsed;
             img.Source = newBmpTbl.ToBitmapSource();
+            Console.WriteLine("Auto.");
+        }
+
+        private async void IrisContrast_Button(object sender, RoutedEventArgs e)
+        {
+            if (!(newBmp != null && newBmpTbl != null))
+            {
+                MessageBox.Show("Load image!");
+                return;
+            }
+            BlakWait.Visibility = Visibility.Visible;
+            await RunIrisContrast();
+            BlakWait.Visibility = Visibility.Collapsed;
+            img.Source = newBmpTbl.ToBitmapSource();
             Console.WriteLine("Blacked.");
+        }
+
+        private async void fiveColor_Button(object sender, RoutedEventArgs e)
+        {
+            if (!(newBmp != null && newBmpTbl != null))
+            {
+                MessageBox.Show("Load image!");
+                return;
+            }
+            BlakWait.Visibility = Visibility.Visible;
+            await FiveColors();
+            BlakWait.Visibility = Visibility.Collapsed;
+            img.Source = newBmpTbl.ToBitmapSource();
+            Console.WriteLine("Blacked.");
+        }
+
+        private async void IrisCenter_Button(object sender, RoutedEventArgs e)
+        {
+            if (!(newBmp != null && newBmpTbl != null))
+            {
+                MessageBox.Show("Load image!");
+                return;
+            }
+            BlakWait.Visibility = Visibility.Visible;
+            await RunIrisFinder();
+            BlakWait.Visibility = Visibility.Collapsed;
+            img.Source = newBmpTbl.ToBitmapSource();
+            ori.Source = originalBitmapTbl.ToBitmapSource();
+            Console.WriteLine("Iris Found.");
+        }
+
+        private async void IrisAutomatic_Button(object sender, RoutedEventArgs e)
+        {
+            if (!(newBmp != null && newBmpTbl != null))
+            {
+                MessageBox.Show("Load image!");
+                return;
+            }
+            BlakWait.Visibility = Visibility.Visible;
+            await RunGreyScale();
+            await RunContrast();
+            await RunGaussFilter();
+
+            await RunBlack();
+            await FiveColors();
+            await RunFullBlack();
+
+            await RunRemoveSingleNoises();
+            BlakWait.Visibility = Visibility.Collapsed;
+            img.Source = newBmpTbl.ToBitmapSource();
+            Console.WriteLine("Auto.");
         }
 
         public async Task RunRemoveSingleNoises()
@@ -195,11 +264,19 @@ namespace Biometria2
             });
         }
 
+        public async Task RunFullBlack()
+        {
+            await Task.Run(() =>
+            {
+                Helper.RunFullBlack(newBmpTbl);
+            });
+        }
+
         public async Task RunBlack()
         {
             await Task.Run(() =>
             {
-                Helper.RunBlack(newBmpTbl); ;
+                Helper.RunBlack(newBmpTbl); 
             });
         }
 
@@ -240,6 +317,9 @@ namespace Biometria2
             await Task.Run(() =>
             {
                 Tuple<int, int, int> PupCenter = Helper.PupilCenter(borderColor, newBmpTbl);
+                X = PupCenter.Item1;
+                Y = PupCenter.Item2;
+                R = PupCenter.Item3;
                 Helper.DrawInnerCircle(originalBitmapTbl, PupCenter);
             });
         }
@@ -250,6 +330,34 @@ namespace Biometria2
             {
                 Helper.Contrast(newBmpTbl);
             });
-        }        
+        }
+
+        public async Task RunIrisContrast()
+        {
+            await Task.Run(() =>
+            {
+                Helper.IrisContrast(newBmpTbl);
+            });
+        }
+
+        public async Task FiveColors()
+        {
+            await Task.Run(() =>
+            {
+                borderIrisColor = Helper.FiveColors(newBmpTbl);
+            });
+        }
+
+        public async Task RunIrisFinder()
+        {
+            await Task.Run(() =>
+            {
+                Tuple<int, int, int> IrisCenter = Helper.Iris(borderColor, newBmpTbl, X, Y, R);
+                X = IrisCenter.Item1;
+                Y = IrisCenter.Item2;
+                R = IrisCenter.Item3;
+                Helper.DrawInnerCircle(originalBitmapTbl, IrisCenter);
+            });
+        }
     }
 }

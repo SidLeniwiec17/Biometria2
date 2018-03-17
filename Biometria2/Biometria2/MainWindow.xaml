@@ -44,16 +44,24 @@
                 <RowDefinition/>
                 <RowDefinition/>
                 <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
             </Grid.RowDefinitions>
             <Button Grid.Row="0" Content="Upload Photo" Grid.Column="0" Click="Load_Button" />
             <Button Grid.Row="1" Content="Clear" Grid.Column="0" Click="Clear_Button" />
             <Button Grid.Row="2" Content="Gray Scale" Grid.Column="0" Click="GrayScale_Button" />
-            <Button Grid.Row="3" Content="Contrast" Grid.Column="0" Click="Contrast_Button" />
+            <Button Grid.Row="3" Content="Pupil Contrast" Grid.Column="0" Click="Contrast_Button" />
             <Button Grid.Row="4" Content="Gauss Filter" Grid.Column="0" Click="Gauss_Button" />
             <Button Grid.Row="5" Content="Three Colors" Grid.Column="0" Click="threeColor_Button" />
             <Button Grid.Row="6" Content="MoreBlacks" Grid.Column="0" Click="MoreBlacks_Button" />
-            <Button Grid.Row="7" Content="Auto" Grid.Column="0" Click="Automatic_Button" />
-            <Button Grid.Row="8" Content="PupilCenter" Grid.Column="0" Click="PupilCenter_Button" />
+            <Button Grid.Row="7" Content="Pupil Auto" Grid.Column="0" Click="Automatic_Button" />
+            <Button Grid.Row="8" Content="Iris Contrast" Grid.Column="0" Click="IrisContrast_Button" />
+            <Button Grid.Row="9" Content="Three Iris Colors" Grid.Column="0" Click="fiveColor_Button" />
+            <Button Grid.Row="10" Content="Iris Auto" Grid.Column="0" Click="IrisAutomatic_Button" />
+            <Button Grid.Row="11" Content="PupilCenter" Grid.Column="0" Click="PupilCenter_Button" />
+            <Button Grid.Row="12" Content="IrisCenter" Grid.Column="0" Click="IrisCenter_Button" />
         </Grid>
         <Border Name="BlakWait" BorderBrush="Black" BorderThickness="1" Background="#80000000" Visibility="Collapsed" Grid.RowSpan="3" Grid.ColumnSpan="4" >
             <Grid>

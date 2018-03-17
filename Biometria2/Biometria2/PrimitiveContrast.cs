@@ -12,7 +12,7 @@ namespace Biometria2
     {
         public System.Windows.Point[] listContrast;
 
-        public PrimitiveContrast()
+        public PrimitiveContrast(int x1, int y1, int x2, int y2)
         {
             List<System.Windows.Point> temp = new List<System.Windows.Point>();
             System.Windows.Point firstPoint = new System.Windows.Point();
@@ -21,12 +21,12 @@ namespace Biometria2
             System.Windows.Point lastPoint = new System.Windows.Point();
             firstPoint.X = 0;
             lastPoint.X = 255;
-            firstMidPoint.X = 30;
-            lastMidPoint.X = 225;
+            firstMidPoint.X = x1;
+            lastMidPoint.X = x2;
             firstPoint.Y = 255;
             lastPoint.Y = 0;
-            firstMidPoint.Y = 255;
-            lastMidPoint.Y = 0;
+            firstMidPoint.Y = y1;
+            lastMidPoint.Y = y2;
             temp.Add(firstPoint);
             temp.Add(firstMidPoint);
             temp.Add(lastMidPoint);

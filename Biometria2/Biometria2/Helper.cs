@@ -51,7 +51,7 @@ namespace Biometria2
 
         public static void Contrast(BitmapTable btm)
         {
-            PrimitiveContrast pc = new PrimitiveContrast();
+            PrimitiveContrast pc = new PrimitiveContrast(30, 255, 255, 0);
             for (int x = 0; x < btm.Width; x++)
             {
                 for (int y = 0; y < btm.Height; y++)
@@ -169,7 +169,6 @@ namespace Biometria2
         public static void RunBlack(BitmapTable newBmpTbl)
         {
             int bigCounter = 3;
-
             while (bigCounter > 2)
             {
                 BitmapTable tempPict = new BitmapTable(newBmpTbl);
@@ -177,6 +176,46 @@ namespace Biometria2
                 for (int x = newBmpTbl.Width / 8; x < newBmpTbl.Width - newBmpTbl.Width / 7; x++)
                 {
                     for (int y = newBmpTbl.Height / 8; y < newBmpTbl.Height - newBmpTbl.Height / 7; y++)
+                    {
+                        int counter = 0;
+                        for (int x2 = -1; x2 < 2; x2++)
+                        {
+                            for (int y2 = -1; y2 < 2; y2++)
+                            {
+                                if (newBmpTbl.getPixel(x, y).R != 0 && x + x2 >= 0 && y + y2 >= 0 && x + x2 < newBmpTbl.Width && y + y2 < newBmpTbl.Height && newBmpTbl.getPixel(x + x2, y + y2).R <= (255 / 6))
+                                {
+                                    counter++;
+                                }
+                            }
+                        }
+                        if (counter >= 5)
+                        {
+                            tempPict.setPixel(x, y, Color.FromArgb(0, 0, 0));
+                            bigCounter++;
+                        }
+                    }
+                }
+                Console.WriteLine("Blacked " + bigCounter + " pixels.");
+                for (int x = 0; x < newBmpTbl.Width; x++)
+                {
+                    for (int y = 0; y < newBmpTbl.Height; y++)
+                    {
+                        newBmpTbl.setPixel(x, y, tempPict.getPixel(x, y));
+                    }
+                }
+            }
+        }
+
+        public static void RunFullBlack(BitmapTable newBmpTbl)
+        {
+            int bigCounter = 3;
+            while (bigCounter > 2)
+            {
+                BitmapTable tempPict = new BitmapTable(newBmpTbl);
+                bigCounter = 0;
+                for (int x = 0 ; x < newBmpTbl.Width; x++)
+                {
+                    for (int y = 0; y < newBmpTbl.Height; y++)
                     {
                         int counter = 0;
                         for (int x2 = -1; x2 < 2; x2++)
@@ -235,6 +274,110 @@ namespace Biometria2
                 }
             }
             catch (Exception ex) { }
+        }
+
+        public static void IrisContrast(BitmapTable newBmpTbl)
+        {
+            PrimitiveContrast pc = new PrimitiveContrast(0, 255, 185, 0);
+            for (int x = 0; x < newBmpTbl.Width; x++)
+            {
+                for (int y = 0; y < newBmpTbl.Height; y++)
+                {
+                    var nCol = pc.GetColor(newBmpTbl.getPixel(x, y));
+                    newBmpTbl.setPixel(x, y, System.Drawing.Color.FromArgb(nCol.R, nCol.G, nCol.B));
+                }
+            }
+        }
+
+        internal static Tuple<int, int, int> Iris(int borderColor, BitmapTable newBmpTbl, int x, int y, int r)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal static int FiveColors(BitmapTable newBmpTbl)
+        {
+            int borderColor = 255;
+            int threads = 8;
+            BitmapTable[] pictures = new BitmapTable[threads];
+            ConcurrentBag<int> mins = new ConcurrentBag<int>();
+            ConcurrentBag<int> maxs = new ConcurrentBag<int>();
+            ConcurrentBag<int> sums = new ConcurrentBag<int>();
+            ConcurrentBag<int> counters = new ConcurrentBag<int>();
+
+            for (int i = 0; i < threads; i++)
+            {
+                pictures[i] = new BitmapTable(newBmpTbl);
+            }
+
+            Parallel.For(0, threads, i =>
+            {
+                int min = 255;
+                int max = 0;
+                int totSum = 0;
+                int counter = 0;
+                int w = pictures[i].Width / threads;
+
+                for (int x = i * w; x < (i + 1) * w; x++)
+                {
+                    for (int y = 0; y < pictures[i].Height; y++)
+                    {
+                        var col = pictures[i].getPixel(x, y).R;
+                        if (col > max)
+                            max = col;
+                        if (col < min)
+                            min = col;
+                        if (col <= 215)
+                        {
+                            totSum += col;
+                            counter++;
+                        }
+                    }
+                }
+                mins.Add(min);
+                maxs.Add(max);
+                sums.Add(totSum);
+                counters.Add(counter);
+            });
+
+            int fmin = mins.Min();
+            int fmax = maxs.Max();
+            int fmid = sums.Sum() / counters.Sum();
+            int fmid1 = (fmid + fmin) / 2;
+            int fmid2 = (fmax + fmid) / 2;
+
+            borderColor = fmid2;
+
+            for (int x = 0; x < newBmpTbl.Width; x++)
+            {
+                for (int y = 0; y < newBmpTbl.Height; y++)
+                {
+                    var col = newBmpTbl.getPixel(x, y).R;
+
+                    int distMin = Math.Abs(col - fmin);
+                    int distMid1 = Math.Abs(col - fmid1);
+                    int distMid2 = Math.Abs(col - fmid2);
+                    int distMax = Math.Abs(col - fmax);
+
+                    int minV = Math.Min(distMin, Math.Min(distMid1, Math.Min(distMid2, distMax)));
+                    if (minV == distMin)
+                    {
+                        newBmpTbl.setPixel(x, y, Color.FromArgb(0, 0, 0));
+                    }
+                    else if (minV == distMid1)
+                    {
+                        newBmpTbl.setPixel(x, y, Color.FromArgb(fmid1, fmid1, fmid1));
+                    }
+                    else if (minV == distMid2)
+                    {
+                        newBmpTbl.setPixel(x, y, Color.FromArgb(fmid2, fmid2, fmid2));
+                    }
+                    else
+                    {
+                        newBmpTbl.setPixel(x, y, Color.FromArgb(255, 255, 255));
+                    }
+                }
+            }
+            return borderColor;
         }
 
         public static void RemoveSingleNoises(BitmapTable btm)
@@ -591,7 +734,7 @@ namespace Biometria2
             {
                 pictures[i] = new BitmapTable(bitmap);
             }
-            int borderValue = (int)((0.85 * (double)borderColor)/3);
+            int borderValue = (int)((0.85 * (double)borderColor) / 3);
             int centerX = bitmap.Width / 2;
             int centerY = bitmap.Height / 2;
             int R = 1;
@@ -612,7 +755,7 @@ namespace Biometria2
                     {
                         if (x > horizontalMargin && x < pictures[i].Width - horizontalMargin && y > verticalMargin && y < pictures[i].Height - verticalMargin)
                         {
-                            if(x == pictures[i].Width /2 && y == pictures[i].Height /2)
+                            if (x == pictures[i].Width / 2 && y == pictures[i].Height / 2)
                             {
                                 Console.WriteLine("test");
                             }
@@ -643,9 +786,9 @@ namespace Biometria2
                 Rs.Add(tempR);
             });
 
-            for(int i = 0; i < threads; i++)
+            for (int i = 0; i < threads; i++)
             {
-                if(Rs.ElementAt(i) > R)
+                if (Rs.ElementAt(i) > R)
                 {
                     R = Rs.ElementAt(i);
                     centerX = Xs.ElementAt(i);
