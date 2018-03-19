@@ -23,9 +23,13 @@ namespace IrisCode
     public partial class MainWindow : Window
     {
         public Bitmap newBmp;
-        public BitmapTable newBmpTbl;
+        public WriteableBitmap WnewBmp;
+        public ByteImage newBmpTbl;
+
         public Bitmap originalBitmap;
-        public BitmapTable originalBitmapTbl;
+        public WriteableBitmap WoriginalBitmap;
+        public ByteImage originalBitmapTbl;
+
         public int borderColor = 255;
         public int borderIrisColor = 255;
 
@@ -83,9 +87,13 @@ namespace IrisCode
         private void performLoadingPictures(BitmapImage btmi, string FileName)
         {
             newBmp = (Bitmap)Bitmap.FromFile(FileName);
+            var temp = new BitmapImage(new Uri(FileName));
+            WnewBmp = new WriteableBitmap(temp);
+            newBmpTbl = new ByteImage(WnewBmp, newBmp);
+
             originalBitmap = (Bitmap)Bitmap.FromFile(FileName);
-            newBmpTbl = new BitmapTable(newBmp);
-            originalBitmapTbl = new BitmapTable(newBmpTbl);
+            WoriginalBitmap = new WriteableBitmap(temp);
+            originalBitmapTbl = new ByteImage(WoriginalBitmap, newBmp);
         }
 
         private async Task CutOffIris()
@@ -107,7 +115,7 @@ namespace IrisCode
             });
 
             //--------------
-            newBmpTbl = new BitmapTable(originalBitmapTbl);
+            newBmpTbl = new ByteImage(originalBitmapTbl);
             await RunContrast();
             await RunGreyScale();
             await RunContrast();
@@ -126,7 +134,7 @@ namespace IrisCode
                 irisY = IrisCenter.Item2;
                 irisR = IrisCenter.Item3;
             });
-            newBmpTbl = new BitmapTable(originalBitmapTbl);
+            newBmpTbl = new ByteImage(originalBitmapTbl);
             await CutOffStuff();
             img.Source = newBmpTbl.ToBitmapSource();
         }

@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace IrisCode
 {
@@ -28,43 +29,42 @@ namespace IrisCode
             return wpfBitmap;
         }
 
-        public static void GrayScale(BitmapTable btm)
+        public static void GrayScale(ByteImage btm)
         {
             for (int x = 0; x < btm.Width; x++)
             {
                 for (int y = 0; y < btm.Height; y++)
                 {
-                    System.Drawing.Color oldColour;
+                    byte[] oldColour;
                     oldColour = btm.getPixel(x, y);
-                    var value = (0.2 * (double)oldColour.R) + (0.7 * (double)oldColour.G) + (0.1 * (double)oldColour.B);
-                    btm.setPixel(x, y, System.Drawing.Color.FromArgb((int)value, (int)value, (int)value));
+                    var value = (0.2 * (double)oldColour[0]) + (0.7 * (double)oldColour[1]) + (0.1 * (double)oldColour[2]);
+                    btm.setPixel(x, y, new byte[] { (byte)value, (byte)value, (byte)value });
                 }
             }
         }
 
-        public static void Gauss(BitmapTable btm)
+        public static void Gauss(ByteImage btm)
         {
             double a = 2;
             double[,] wages = new double[3, 3] { { 1, a, 1 }, { a, a * a, a }, { 1, a, 1 } };
             GaussFilter(btm, a, wages);
         }
 
-        public static void Contrast(BitmapTable btm)
+        public static void Contrast(ByteImage btm)
         {
             PrimitiveContrast pc = new PrimitiveContrast(30, 255, 255, 0);
             for (int x = 0; x < btm.Width; x++)
             {
                 for (int y = 0; y < btm.Height; y++)
                 {
-                    var nCol = pc.GetColor(btm.getPixel(x, y));
-                    btm.setPixel(x, y, System.Drawing.Color.FromArgb(nCol.R, nCol.G, nCol.B));
+                    btm.setPixel(x, y, pc.GetColor(btm.getPixel(x, y)));
                 }
             }
         }
 
-        public static void GaussFilter(BitmapTable btm, double a, double[,] wages)
+        public static void GaussFilter(ByteImage btm, double a, double[,] wages)
         {
-            BitmapTable tempPict = new BitmapTable(btm);
+            ByteImage tempPict = new ByteImage(btm);
 
             for (int x = 0; x < tempPict.Width; x++)
             {
@@ -81,14 +81,15 @@ namespace IrisCode
                             if (x + x2 >= 0 && y + y2 >= 0 && x + x2 < tempPict.Width && y + y2 < tempPict.Height)
                             {
                                 double currWage = wages[x2 + 1, y2 + 1];
-                                sumR += tempPict.getPixel(x + x2, y + y2).R * currWage;
-                                sumG += tempPict.getPixel(x + x2, y + y2).G * currWage;
-                                sumB += tempPict.getPixel(x + x2, y + y2).B * currWage;
+                                var pix = tempPict.getPixel(x + x2, y + y2);
+                                sumR += pix[0] * currWage;
+                                sumG += pix[1] * currWage;
+                                sumB += pix[2] * currWage;
                                 dividor += currWage;
                             }
                         }
                     }
-                    btm.setPixel(x, y, System.Drawing.Color.FromArgb(FromInterval((int)(sumR / dividor)), FromInterval((int)(sumG / dividor)), FromInterval((int)(sumB / dividor))));
+                    btm.setPixel(x, y, new byte[] { (byte)FromInterval((int)(sumR / dividor)), (byte)FromInterval((int)(sumG / dividor)), (byte)FromInterval((int)(sumB / dividor)) });
                 }
             }
         }
@@ -103,23 +104,23 @@ namespace IrisCode
                 return 0;
         }
 
-        public static void RunBlack(BitmapTable newBmpTbl)
+        public static void RunBlack(ByteImage newBmpTbl)
         {
             int bigCounter = 3;
             while (bigCounter > 2)
             {
-                BitmapTable tempPict = new BitmapTable(newBmpTbl);
+                ByteImage tempPict = new ByteImage(newBmpTbl);
                 bigCounter = 0;
-                for (int x = newBmpTbl.Width / 8; x < newBmpTbl.Width - newBmpTbl.Width / 7; x++)
+                for (int x = (int)newBmpTbl.Width / 8; x < newBmpTbl.Width - newBmpTbl.Width / 7; x++)
                 {
-                    for (int y = newBmpTbl.Height / 8; y < newBmpTbl.Height - newBmpTbl.Height / 7; y++)
+                    for (int y = (int)newBmpTbl.Height / 8; y < newBmpTbl.Height - newBmpTbl.Height / 7; y++)
                     {
                         int counter = 0;
                         for (int x2 = -1; x2 < 2; x2++)
                         {
                             for (int y2 = -1; y2 < 2; y2++)
                             {
-                                if (newBmpTbl.getPixel(x, y).R != 0 && x + x2 >= 0 && y + y2 >= 0 && x + x2 < newBmpTbl.Width && y + y2 < newBmpTbl.Height && newBmpTbl.getPixel(x + x2, y + y2).R <= (255 / 6))
+                                if (newBmpTbl.getPixel(x, y)[0] != 0 && x + x2 >= 0 && y + y2 >= 0 && x + x2 < newBmpTbl.Width && y + y2 < newBmpTbl.Height && newBmpTbl.getPixel(x + x2, y + y2)[0] <= (255 / 6))
                                 {
                                     counter++;
                                 }
@@ -127,7 +128,7 @@ namespace IrisCode
                         }
                         if (counter >= 5)
                         {
-                            tempPict.setPixel(x, y, Color.FromArgb(0, 0, 0));
+                            tempPict.setPixel(x, y, new byte[] { 0, 0, 0 });
                             bigCounter++;
                         }
                     }
@@ -143,12 +144,12 @@ namespace IrisCode
             }
         }
 
-        public static void RunFullBlack(BitmapTable newBmpTbl)
+        public static void RunFullBlack(ByteImage newBmpTbl)
         {
             int bigCounter = 3;
             while (bigCounter > 2)
             {
-                BitmapTable tempPict = new BitmapTable(newBmpTbl);
+                ByteImage tempPict = new ByteImage(newBmpTbl);
                 bigCounter = 0;
                 for (int x = 0; x < newBmpTbl.Width; x++)
                 {
@@ -159,7 +160,7 @@ namespace IrisCode
                         {
                             for (int y2 = -1; y2 < 2; y2++)
                             {
-                                if (newBmpTbl.getPixel(x, y).R != 0 && x + x2 >= 0 && y + y2 >= 0 && x + x2 < newBmpTbl.Width && y + y2 < newBmpTbl.Height && newBmpTbl.getPixel(x + x2, y + y2).R <= (255 / 6))
+                                if (newBmpTbl.getPixel(x, y)[0] != 0 && x + x2 >= 0 && y + y2 >= 0 && x + x2 < newBmpTbl.Width && y + y2 < newBmpTbl.Height && newBmpTbl.getPixel(x + x2, y + y2)[0] <= (255 / 6))
                                 {
                                     counter++;
                                 }
@@ -167,7 +168,7 @@ namespace IrisCode
                         }
                         if (counter >= 5)
                         {
-                            tempPict.setPixel(x, y, Color.FromArgb(0, 0, 0));
+                            tempPict.setPixel(x, y, new byte[] { 0, 0, 0 });
                             bigCounter++;
                         }
                     }
@@ -183,18 +184,18 @@ namespace IrisCode
             }
         }
 
-        internal static void DrawInnerCircle(BitmapTable originalBitmapTbl, Tuple<int, int, int> pupCenter)
+        internal static void DrawInnerCircle(ByteImage originalBitmapTbl, Tuple<int, int, int> pupCenter)
         {
             int x = pupCenter.Item1;
             int y = pupCenter.Item2;
             int r = pupCenter.Item3;
             try
             {
-                originalBitmapTbl.setPixel(x, y, System.Drawing.Color.Red);
-                originalBitmapTbl.setPixel(x + 1, y, System.Drawing.Color.Red);
-                originalBitmapTbl.setPixel(x - 1, y, System.Drawing.Color.Red);
-                originalBitmapTbl.setPixel(x, y + 1, System.Drawing.Color.Red);
-                originalBitmapTbl.setPixel(x, y - 1, System.Drawing.Color.Red);
+                originalBitmapTbl.setPixel(x, y, new byte[] { 255, 0, 0 });
+                originalBitmapTbl.setPixel(x + 1, y, new byte[] { 255, 0, 0 });
+                originalBitmapTbl.setPixel(x - 1, y, new byte[] { 255, 0, 0 });
+                originalBitmapTbl.setPixel(x, y + 1, new byte[] { 255, 0, 0 });
+                originalBitmapTbl.setPixel(x, y - 1, new byte[] { 255, 0, 0 });
 
                 for (int t = 0; t < 360; t++)
                 {
@@ -204,7 +205,7 @@ namespace IrisCode
                     {
                         try
                         {
-                            originalBitmapTbl.setPixel(a, b, System.Drawing.Color.Blue);
+                            originalBitmapTbl.setPixel(a, b, new byte[] { 0, 0, 255 });
                         }
                         catch (Exception e) { };
                     }
@@ -213,30 +214,29 @@ namespace IrisCode
             catch (Exception ex) { }
         }
 
-        public static void IrisContrast(BitmapTable newBmpTbl)
+        public static void IrisContrast(ByteImage newBmpTbl)
         {
             PrimitiveContrast pc = new PrimitiveContrast(0, 255, 185, 0);
             for (int x = 0; x < newBmpTbl.Width; x++)
             {
                 for (int y = 0; y < newBmpTbl.Height; y++)
                 {
-                    var nCol = pc.GetColor(newBmpTbl.getPixel(x, y));
-                    newBmpTbl.setPixel(x, y, System.Drawing.Color.FromArgb(nCol.R, nCol.G, nCol.B));
+                    newBmpTbl.setPixel(x, y, pc.GetColor(newBmpTbl.getPixel(x, y)));
                 }
             }
         }
 
-        internal static Tuple<int, int, int> Iris(int borderColor, BitmapTable bitmap, int px, int py, int pr)
+        public static Tuple<int, int, int> Iris(int borderColor, ByteImage bitmap, int px, int py, int pr)
         {
             int threads = 8;
-            BitmapTable[] pictures = new BitmapTable[threads];
+            ByteImage[] pictures = new ByteImage[threads];
             ConcurrentBag<int> Xs = new ConcurrentBag<int>();
             ConcurrentBag<int> Ys = new ConcurrentBag<int>();
             ConcurrentBag<int> Rs = new ConcurrentBag<int>();
 
             for (int i = 0; i < threads; i++)
             {
-                pictures[i] = new BitmapTable(bitmap);
+                pictures[i] = new ByteImage(bitmap);
             }
             int borderValue = (int)((double)borderColor / 2);
             int centerX = px;
@@ -255,10 +255,10 @@ namespace IrisCode
                 {
                     for (int y = py - 10; y < py + 10; y++)
                     {
-                        if (pictures[i].getPixel(x, y).R == 0)
+                        if (pictures[i].getPixel(x, y)[0] == 0)
                         {
                             int currR = 0;
-                            int[] contrasts = FindContrasts(pictures[i].Width / 4 + pr, x, y, pictures[i], (pr + 10));
+                            int[] contrasts = FindContrasts((int)pictures[i].Width / 4 + pr, x, y, pictures[i], (pr + 10));
                             for (int c = 0; c < contrasts.Length; c++)
                             {
                                 if (contrasts[c] >= borderValue)
@@ -294,11 +294,11 @@ namespace IrisCode
             return new Tuple<int, int, int>(centerX, centerY, R);
         }
 
-        internal static int FiveColors(BitmapTable newBmpTbl)
+        public static int FiveColors(ByteImage newBmpTbl)
         {
             int borderColor = 255;
             int threads = 8;
-            BitmapTable[] pictures = new BitmapTable[threads];
+            ByteImage[] pictures = new ByteImage[threads];
             ConcurrentBag<int> mins = new ConcurrentBag<int>();
             ConcurrentBag<int> maxs = new ConcurrentBag<int>();
             ConcurrentBag<int> sums = new ConcurrentBag<int>();
@@ -306,7 +306,7 @@ namespace IrisCode
 
             for (int i = 0; i < threads; i++)
             {
-                pictures[i] = new BitmapTable(newBmpTbl);
+                pictures[i] = new ByteImage(newBmpTbl);
             }
 
             Parallel.For(0, threads, i =>
@@ -315,13 +315,13 @@ namespace IrisCode
                 int max = 0;
                 int totSum = 0;
                 int counter = 0;
-                int w = pictures[i].Width / threads;
+                int w = (int)pictures[i].Width / threads;
 
                 for (int x = i * w; x < (i + 1) * w; x++)
                 {
                     for (int y = 0; y < pictures[i].Height; y++)
                     {
-                        var col = pictures[i].getPixel(x, y).R;
+                        var col = pictures[i].getPixel(x, y)[0];
                         if (col > max)
                             max = col;
                         if (col < min)
@@ -341,7 +341,11 @@ namespace IrisCode
 
             int fmin = mins.Min();
             int fmax = maxs.Max();
-            int fmid = sums.Sum() / counters.Sum();
+            int fmid = 0;
+            if (counters.Sum() != 0)
+            {
+                fmid = sums.Sum() / counters.Sum();
+            }
             int fmid1 = (fmid + fmin) / 2;
             int fmid2 = (fmax + fmid) / 2;
 
@@ -351,7 +355,7 @@ namespace IrisCode
             {
                 for (int y = 0; y < newBmpTbl.Height; y++)
                 {
-                    var col = newBmpTbl.getPixel(x, y).R;
+                    var col = newBmpTbl.getPixel(x, y)[0];
 
                     int distMin = Math.Abs(col - fmin);
                     int distMid1 = Math.Abs(col - fmid1);
@@ -361,35 +365,35 @@ namespace IrisCode
                     int minV = Math.Min(distMin, Math.Min(distMid1, Math.Min(distMid2, distMax)));
                     if (minV == distMin)
                     {
-                        newBmpTbl.setPixel(x, y, Color.FromArgb(0, 0, 0));
+                        newBmpTbl.setPixel(x, y, new byte[] { 0, 0, 0 });
                     }
                     else if (minV == distMid1)
                     {
-                        newBmpTbl.setPixel(x, y, Color.FromArgb(fmid1, fmid1, fmid1));
+                        newBmpTbl.setPixel(x, y, new byte[] { (byte)fmid1, (byte)fmid1, (byte)fmid1 });
                     }
                     else if (minV == distMid2)
                     {
-                        newBmpTbl.setPixel(x, y, Color.FromArgb(fmid2, fmid2, fmid2));
+                        newBmpTbl.setPixel(x, y, new byte[] { (byte)fmid2, (byte)fmid2, (byte)fmid2 });
                     }
                     else
                     {
-                        newBmpTbl.setPixel(x, y, Color.FromArgb(255, 255, 255));
+                        newBmpTbl.setPixel(x, y, new byte[] { 255, 255, 255 });
                     }
                 }
             }
             return borderColor;
         }
 
-        public static void RemoveSingleNoises(BitmapTable btm)
+        public static void RemoveSingleNoises(ByteImage btm)
         {
-            BitmapTable tempPict = new BitmapTable(btm);
+            ByteImage tempPict = new ByteImage(btm);
             int counter = 0;
             for (int x = 0; x < btm.Width; x++)
             {
                 for (int y = 0; y < btm.Height; y++)
                 {
-                    System.Drawing.Color oldColour = btm.getPixel(x, y);
-                    if (oldColour.R == 0)
+                    var oldColour = btm.getPixel(x, y);
+                    if (oldColour[0] == 0)
                     {
                         bool isAlone = true;
 
@@ -400,7 +404,7 @@ namespace IrisCode
                                 if (x + x2 >= 0 && x + x2 < btm.Width && y + y2 >= 0 && y + y2 < btm.Height)
                                 {
                                     var col = btm.getPixel(x + x2, y + y2);
-                                    if (col.R == 0)
+                                    if (col[0] == 0)
                                     {
                                         isAlone = false;
                                         break;
@@ -411,7 +415,7 @@ namespace IrisCode
 
                         if (isAlone)
                         {
-                            tempPict.setPixel(x, y, System.Drawing.Color.White);
+                            tempPict.setPixel(x, y, new byte[] { 0, 0, 0 });
                         }
                     }
                 }
@@ -426,11 +430,11 @@ namespace IrisCode
             }
         }
 
-        public static int ThreeColors(BitmapTable newBmpTbl)
+        public static int ThreeColors(ByteImage newBmpTbl)
         {
             int borderColor = 255;
             int threads = 8;
-            BitmapTable[] pictures = new BitmapTable[threads];
+            ByteImage[] pictures = new ByteImage[threads];
             ConcurrentBag<int> mins = new ConcurrentBag<int>();
             ConcurrentBag<int> maxs = new ConcurrentBag<int>();
             ConcurrentBag<int> sums = new ConcurrentBag<int>();
@@ -438,8 +442,9 @@ namespace IrisCode
 
             for (int i = 0; i < threads; i++)
             {
-                pictures[i] = new BitmapTable(newBmpTbl);
+                pictures[i] = new ByteImage(newBmpTbl);
             }
+
 
             Parallel.For(0, threads, i =>
             {
@@ -447,13 +452,13 @@ namespace IrisCode
                 int max = 0;
                 int totSum = 0;
                 int counter = 0;
-                int w = pictures[i].Width / threads;
+                int w = (int)pictures[i].Width / threads;
 
                 for (int x = i * w; x < (i + 1) * w; x++)
                 {
                     for (int y = 0; y < pictures[i].Height; y++)
                     {
-                        var col = pictures[i].getPixel(x, y).R;
+                        var col = pictures[i].getPixel(x, y)[0];
                         if (col > max)
                             max = col;
                         if (col < min)
@@ -483,7 +488,7 @@ namespace IrisCode
             {
                 for (int y = 0; y < newBmpTbl.Height; y++)
                 {
-                    var col = newBmpTbl.getPixel(x, y).R;
+                    var col = newBmpTbl.getPixel(x, y)[0];
 
                     int distMin = Math.Abs(col - fmin);
                     int distMid1 = Math.Abs(col - fmid1);
@@ -493,26 +498,26 @@ namespace IrisCode
                     int minV = Math.Min(distMin, Math.Min(distMid1, Math.Min(distMid2, distMax)));
                     if (minV == distMin)
                     {
-                        newBmpTbl.setPixel(x, y, Color.FromArgb(0, 0, 0));
+                        newBmpTbl.setPixel(x, y, new byte[] { 0, 0, 0 });
                     }
                     else if (minV == distMid1)
                     {
-                        newBmpTbl.setPixel(x, y, Color.FromArgb(fmid2, fmid2, fmid2));
+                        newBmpTbl.setPixel(x, y, new byte[] { (byte)fmid2, (byte)fmid2, (byte)fmid2 });
                     }
                     else if (minV == distMid2)
                     {
-                        newBmpTbl.setPixel(x, y, Color.FromArgb(fmid2, fmid2, fmid2));
+                        newBmpTbl.setPixel(x, y, new byte[] { (byte)fmid2, (byte)fmid2, (byte)fmid2 });
                     }
                     else
                     {
-                        newBmpTbl.setPixel(x, y, Color.FromArgb(255, 255, 255));
+                        newBmpTbl.setPixel(x, y, new byte[] { 255, 255, 255 });
                     }
                 }
             }
             return borderColor;
-        }       
+        }
 
-        public static int[] FindContrasts(int maxR, int x, int y, BitmapTable bitmap, int minR = 0)
+        public static int[] FindContrasts(int maxR, int x, int y, ByteImage bitmap, int minR = 0)
         {
             double[] coss = new double[360];
             double[] sins = new double[360];
@@ -521,8 +526,8 @@ namespace IrisCode
                 coss[t] = Math.Cos(t * Math.PI / 180);
                 sins[t] = Math.Sin(t * Math.PI / 180);
             }
-            int wid = bitmap.Width;
-            int hig = bitmap.Height;
+            int wid = (int)bitmap.Width;
+            int hig = (int)bitmap.Height;
             int[] cList = new int[maxR];
             for (int r = 0; r < maxR; r++)
             {
@@ -534,7 +539,7 @@ namespace IrisCode
                     var b = (int)(y - ((r + minR) * sins[t]));
                     if (a >= 0 && b >= 0 && a < wid && b < hig)
                     {
-                        sum += bitmap.getPixel(a, b).R;
+                        sum += bitmap.getPixel(a, b)[0];
                         counter++;
                     }
                 }
@@ -551,26 +556,26 @@ namespace IrisCode
             return cList;
         }
 
-        public static Tuple<int, int, int> PupilCenter(int borderColor, BitmapTable bitmap)
+        public static Tuple<int, int, int> PupilCenter(int borderColor, ByteImage bitmap)
         {
             int threads = 8;
-            BitmapTable[] pictures = new BitmapTable[threads];
+            ByteImage[] pictures = new ByteImage[threads];
             ConcurrentBag<int> Xs = new ConcurrentBag<int>();
             ConcurrentBag<int> Ys = new ConcurrentBag<int>();
             ConcurrentBag<int> Rs = new ConcurrentBag<int>();
 
             for (int i = 0; i < threads; i++)
             {
-                pictures[i] = new BitmapTable(bitmap);
+                pictures[i] = new ByteImage(bitmap);
             }
             int borderValue = (int)((0.85 * (double)borderColor) / 3);
-            int centerX = bitmap.Width / 2;
-            int centerY = bitmap.Height / 2;
+            int centerX = (int)bitmap.Width / 2;
+            int centerY = (int)bitmap.Height / 2;
             int R = 1;
-            int verticalMargin = bitmap.Height / 4;
-            int horizontalMargin = bitmap.Width / 4;
+            int verticalMargin = (int)bitmap.Height / 4;
+            int horizontalMargin = (int)bitmap.Width / 4;
 
-            int w = bitmap.Width / threads;
+            int w = (int)bitmap.Width / threads;
 
             Parallel.For(0, threads, i =>
             //for (int i = 0; i < threads; i++)
@@ -588,10 +593,10 @@ namespace IrisCode
                             {
                                 Console.WriteLine("test");
                             }
-                            if (pictures[i].getPixel(x, y).R == 0)
+                            if (pictures[i].getPixel(x, y)[0] == 0)
                             {
                                 int currR = 0;
-                                int[] contrasts = FindContrasts(pictures[i].Width / 4, x, y, pictures[i]);
+                                int[] contrasts = FindContrasts((int)pictures[i].Width / 4, x, y, pictures[i]);
                                 for (int c = 0; c < contrasts.Length; c++)
                                 {
                                     if (contrasts[c] >= borderValue)
@@ -628,7 +633,7 @@ namespace IrisCode
             return new Tuple<int, int, int>(centerX, centerY, R);
         }
 
-        public static void CuttOffIris(BitmapTable btm, Tuple<System.Drawing.Point, int> pupil, Tuple<System.Drawing.Point, int> iris)
+        public static void CuttOffIris(ByteImage btm, Tuple<System.Drawing.Point, int> pupil, Tuple<System.Drawing.Point, int> iris)
         {
             for (int x = 0; x < btm.Width; x++)
             {
@@ -636,7 +641,7 @@ namespace IrisCode
                 {
                     if (IsInsideCircle(pupil, x, y) || !IsInsideCircle(iris, x, y))
                     {
-                        btm.setPixel(x, y, System.Drawing.Color.White);
+                        btm.setPixel(x, y, new byte[] { 255, 255, 255 });
                     }
                 }
             }
