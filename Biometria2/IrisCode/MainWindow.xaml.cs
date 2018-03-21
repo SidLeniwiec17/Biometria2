@@ -76,6 +76,22 @@ namespace IrisCode
             Console.WriteLine("Done.");
         }
 
+        private async void Test_Button(object sender, RoutedEventArgs e)
+        {
+            if (!(newBmp != null && newBmpTbl != null))
+            {
+                MessageBox.Show("Load image!");
+                return;
+            }
+            BlakWait.Visibility = Visibility.Visible;
+
+            await RunContrast();
+            img.Source = newBmpTbl.ToBitmapSource();
+            BlakWait.Visibility = Visibility.Collapsed;
+            img.Source = newBmpTbl.ToBitmapSource();
+            Console.WriteLine("Test.");
+        }
+
         private async Task LoadImages(BitmapImage btmi, string FileName)
         {
             img.Source = btmi;
@@ -209,6 +225,6 @@ namespace IrisCode
             {
                 Helper.RemoveSingleNoises(newBmpTbl); ;
             });
-        }
+        }        
     }
 }

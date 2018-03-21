@@ -38,7 +38,7 @@ namespace IrisCode
                     byte[] oldColour;
                     oldColour = btm.getPixel(x, y);
                     var value = (0.2 * (double)oldColour[0]) + (0.7 * (double)oldColour[1]) + (0.1 * (double)oldColour[2]);
-                    btm.setPixel(x, y, new byte[] { (byte)value, (byte)value, (byte)value });
+                    btm.setPixel(x, y, new byte[] { (byte)value, (byte)value, (byte)value, oldColour[3] });
                 }
             }
         }
@@ -70,6 +70,7 @@ namespace IrisCode
             {
                 for (int y = 0; y < tempPict.Height; y++)
                 {
+                    var currPix = tempPict.getPixel(x, y);
                     double sumR = 0.0;
                     double sumG = 0.0;
                     double sumB = 0.0;
@@ -89,7 +90,7 @@ namespace IrisCode
                             }
                         }
                     }
-                    btm.setPixel(x, y, new byte[] { (byte)FromInterval((int)(sumR / dividor)), (byte)FromInterval((int)(sumG / dividor)), (byte)FromInterval((int)(sumB / dividor)) });
+                    btm.setPixel(x, y, new byte[] { (byte)FromInterval((int)(sumR / dividor)), (byte)FromInterval((int)(sumG / dividor)), (byte)FromInterval((int)(sumB / dividor)), currPix[3] });
                 }
             }
         }
@@ -128,7 +129,7 @@ namespace IrisCode
                         }
                         if (counter >= 5)
                         {
-                            tempPict.setPixel(x, y, new byte[] { 0, 0, 0 });
+                            tempPict.setPixel(x, y, new byte[] { 0, 0, 0, 255 });
                             bigCounter++;
                         }
                     }
@@ -168,7 +169,7 @@ namespace IrisCode
                         }
                         if (counter >= 5)
                         {
-                            tempPict.setPixel(x, y, new byte[] { 0, 0, 0 });
+                            tempPict.setPixel(x, y, new byte[] { 0, 0, 0, 255});
                             bigCounter++;
                         }
                     }
@@ -205,7 +206,7 @@ namespace IrisCode
                     {
                         try
                         {
-                            originalBitmapTbl.setPixel(a, b, new byte[] { 0, 0, 255 });
+                            originalBitmapTbl.setPixel(a, b, new byte[] { 0, 0, 255, 255 });
                         }
                         catch (Exception e) { };
                     }
@@ -365,19 +366,19 @@ namespace IrisCode
                     int minV = Math.Min(distMin, Math.Min(distMid1, Math.Min(distMid2, distMax)));
                     if (minV == distMin)
                     {
-                        newBmpTbl.setPixel(x, y, new byte[] { 0, 0, 0 });
+                        newBmpTbl.setPixel(x, y, new byte[] { 0, 0, 0 ,255});
                     }
                     else if (minV == distMid1)
                     {
-                        newBmpTbl.setPixel(x, y, new byte[] { (byte)fmid1, (byte)fmid1, (byte)fmid1 });
+                        newBmpTbl.setPixel(x, y, new byte[] { (byte)fmid1, (byte)fmid1, (byte)fmid1, 0 });
                     }
                     else if (minV == distMid2)
                     {
-                        newBmpTbl.setPixel(x, y, new byte[] { (byte)fmid2, (byte)fmid2, (byte)fmid2 });
+                        newBmpTbl.setPixel(x, y, new byte[] { (byte)fmid2, (byte)fmid2, (byte)fmid2, 0 });
                     }
                     else
                     {
-                        newBmpTbl.setPixel(x, y, new byte[] { 255, 255, 255 });
+                        newBmpTbl.setPixel(x, y, new byte[] { 255, 255, 255, 255 });
                     }
                 }
             }
@@ -415,7 +416,7 @@ namespace IrisCode
 
                         if (isAlone)
                         {
-                            tempPict.setPixel(x, y, new byte[] { 0, 0, 0 });
+                            tempPict.setPixel(x, y, new byte[] { 0, 0, 0, 255 });
                         }
                     }
                 }
@@ -502,15 +503,15 @@ namespace IrisCode
                     }
                     else if (minV == distMid1)
                     {
-                        newBmpTbl.setPixel(x, y, new byte[] { (byte)fmid2, (byte)fmid2, (byte)fmid2 });
+                        newBmpTbl.setPixel(x, y, new byte[] { (byte)fmid2, (byte)fmid2, (byte)fmid2, 0 });
                     }
                     else if (minV == distMid2)
                     {
-                        newBmpTbl.setPixel(x, y, new byte[] { (byte)fmid2, (byte)fmid2, (byte)fmid2 });
+                        newBmpTbl.setPixel(x, y, new byte[] { (byte)fmid2, (byte)fmid2, (byte)fmid2, 0 });
                     }
                     else
                     {
-                        newBmpTbl.setPixel(x, y, new byte[] { 255, 255, 255 });
+                        newBmpTbl.setPixel(x, y, new byte[] { 255, 255, 255, 255 });
                     }
                 }
             }
@@ -641,7 +642,7 @@ namespace IrisCode
                 {
                     if (IsInsideCircle(pupil, x, y) || !IsInsideCircle(iris, x, y))
                     {
-                        btm.setPixel(x, y, new byte[] { 255, 255, 255 });
+                        btm.setPixel(x, y, new byte[] { 255, 255, 255, 255 });
                     }
                 }
             }

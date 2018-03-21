@@ -61,7 +61,7 @@ namespace IrisCode
             int G = findValue(listContrast, c[1]);
             int B = findValue(listContrast, c[2]);
 
-            return new byte[] { (byte)FromInterval(R), (byte)FromInterval(G), (byte)FromInterval(B) };
+            return new byte[] { (byte)FromInterval(R), (byte)FromInterval(G), (byte)FromInterval(B), c[3] };
         }
 
         private static int FromInterval(int col)
