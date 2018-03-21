@@ -57,11 +57,11 @@ namespace IrisCode
 
         public byte[] GetColor(byte[] c)
         {
-            int R = findValue(listContrast, c[0]);
-            int G = findValue(listContrast, c[1]);
-            int B = findValue(listContrast, c[2]);
+            int R = findValue(listContrast, c[1]);
+            int G = findValue(listContrast, c[2]);
+            int B = findValue(listContrast, c[3]);
 
-            return new byte[] { (byte)FromInterval(R), (byte)FromInterval(G), (byte)FromInterval(B), c[3] };
+            return new byte[] { c[0], (byte)FromInterval(R), (byte)FromInterval(G), (byte)FromInterval(B) };
         }
 
         private static int FromInterval(int col)

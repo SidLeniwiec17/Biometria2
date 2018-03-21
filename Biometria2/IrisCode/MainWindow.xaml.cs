@@ -85,10 +85,11 @@ namespace IrisCode
             }
             BlakWait.Visibility = Visibility.Visible;
 
-            await RunContrast();
+
+            await RunGaussFilter();
             img.Source = newBmpTbl.ToBitmapSource();
             BlakWait.Visibility = Visibility.Collapsed;
-            img.Source = newBmpTbl.ToBitmapSource();
+            //      img.Source = newBmpTbl.ToBitmapSource();
             Console.WriteLine("Test.");
         }
 
@@ -225,6 +226,6 @@ namespace IrisCode
             {
                 Helper.RemoveSingleNoises(newBmpTbl); ;
             });
-        }        
+        }
     }
 }

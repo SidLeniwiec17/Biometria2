@@ -37,8 +37,8 @@ namespace IrisCode
                 {
                     byte[] oldColour;
                     oldColour = btm.getPixel(x, y);
-                    var value = (0.2 * (double)oldColour[0]) + (0.7 * (double)oldColour[1]) + (0.1 * (double)oldColour[2]);
-                    btm.setPixel(x, y, new byte[] { (byte)value, (byte)value, (byte)value, oldColour[3] });
+                    var value = (0.2 * (double)oldColour[1]) + (0.7 * (double)oldColour[2]) + (0.1 * (double)oldColour[3]);
+                    btm.setPixel(x, y, new byte[] { oldColour[0], (byte)value, (byte)value, (byte)value });
                 }
             }
         }
@@ -83,14 +83,14 @@ namespace IrisCode
                             {
                                 double currWage = wages[x2 + 1, y2 + 1];
                                 var pix = tempPict.getPixel(x + x2, y + y2);
-                                sumR += pix[0] * currWage;
-                                sumG += pix[1] * currWage;
-                                sumB += pix[2] * currWage;
+                                sumR += pix[1] * currWage;
+                                sumG += pix[2] * currWage;
+                                sumB += pix[3] * currWage;
                                 dividor += currWage;
                             }
                         }
                     }
-                    btm.setPixel(x, y, new byte[] { (byte)FromInterval((int)(sumR / dividor)), (byte)FromInterval((int)(sumG / dividor)), (byte)FromInterval((int)(sumB / dividor)), currPix[3] });
+                    btm.setPixel(x, y, new byte[] { currPix[0], (byte)FromInterval((int)(sumR / dividor)), (byte)FromInterval((int)(sumG / dividor)), (byte)FromInterval((int)(sumB / dividor)) });
                 }
             }
         }
@@ -121,7 +121,7 @@ namespace IrisCode
                         {
                             for (int y2 = -1; y2 < 2; y2++)
                             {
-                                if (newBmpTbl.getPixel(x, y)[0] != 0 && x + x2 >= 0 && y + y2 >= 0 && x + x2 < newBmpTbl.Width && y + y2 < newBmpTbl.Height && newBmpTbl.getPixel(x + x2, y + y2)[0] <= (255 / 6))
+                                if (newBmpTbl.getPixel(x, y)[1] != 0 && x + x2 >= 0 && y + y2 >= 0 && x + x2 < newBmpTbl.Width && y + y2 < newBmpTbl.Height && newBmpTbl.getPixel(x + x2, y + y2)[1] <= (255 / 6))
                                 {
                                     counter++;
                                 }
@@ -129,7 +129,7 @@ namespace IrisCode
                         }
                         if (counter >= 5)
                         {
-                            tempPict.setPixel(x, y, new byte[] { 0, 0, 0, 255 });
+                            tempPict.setPixel(x, y, new byte[] { 255, 0, 0, 0 });
                             bigCounter++;
                         }
                     }
@@ -161,7 +161,7 @@ namespace IrisCode
                         {
                             for (int y2 = -1; y2 < 2; y2++)
                             {
-                                if (newBmpTbl.getPixel(x, y)[0] != 0 && x + x2 >= 0 && y + y2 >= 0 && x + x2 < newBmpTbl.Width && y + y2 < newBmpTbl.Height && newBmpTbl.getPixel(x + x2, y + y2)[0] <= (255 / 6))
+                                if (newBmpTbl.getPixel(x, y)[1] != 0 && x + x2 >= 0 && y + y2 >= 0 && x + x2 < newBmpTbl.Width && y + y2 < newBmpTbl.Height && newBmpTbl.getPixel(x + x2, y + y2)[1] <= (255 / 6))
                                 {
                                     counter++;
                                 }
@@ -169,7 +169,7 @@ namespace IrisCode
                         }
                         if (counter >= 5)
                         {
-                            tempPict.setPixel(x, y, new byte[] { 0, 0, 0, 255});
+                            tempPict.setPixel(x, y, new byte[] { 255, 0, 0, 0 });
                             bigCounter++;
                         }
                     }
@@ -192,11 +192,11 @@ namespace IrisCode
             int r = pupCenter.Item3;
             try
             {
-                originalBitmapTbl.setPixel(x, y, new byte[] { 255, 0, 0 });
-                originalBitmapTbl.setPixel(x + 1, y, new byte[] { 255, 0, 0 });
-                originalBitmapTbl.setPixel(x - 1, y, new byte[] { 255, 0, 0 });
-                originalBitmapTbl.setPixel(x, y + 1, new byte[] { 255, 0, 0 });
-                originalBitmapTbl.setPixel(x, y - 1, new byte[] { 255, 0, 0 });
+                originalBitmapTbl.setPixel(x, y, new byte[] { 255, 255, 0, 0 });
+                originalBitmapTbl.setPixel(x + 1, y, new byte[] { 255, 255, 0, 0 });
+                originalBitmapTbl.setPixel(x - 1, y, new byte[] { 255, 255, 0, 0 });
+                originalBitmapTbl.setPixel(x, y + 1, new byte[] { 255, 255, 0, 0 });
+                originalBitmapTbl.setPixel(x, y - 1, new byte[] { 255, 255, 0, 0 });
 
                 for (int t = 0; t < 360; t++)
                 {
@@ -206,7 +206,7 @@ namespace IrisCode
                     {
                         try
                         {
-                            originalBitmapTbl.setPixel(a, b, new byte[] { 0, 0, 255, 255 });
+                            originalBitmapTbl.setPixel(a, b, new byte[] { 255, 0, 0, 255 });
                         }
                         catch (Exception e) { };
                     }
@@ -256,7 +256,7 @@ namespace IrisCode
                 {
                     for (int y = py - 10; y < py + 10; y++)
                     {
-                        if (pictures[i].getPixel(x, y)[0] == 0)
+                        if (pictures[i].getPixel(x, y)[1] == 0)
                         {
                             int currR = 0;
                             int[] contrasts = FindContrasts((int)pictures[i].Width / 4 + pr, x, y, pictures[i], (pr + 10));
@@ -322,7 +322,7 @@ namespace IrisCode
                 {
                     for (int y = 0; y < pictures[i].Height; y++)
                     {
-                        var col = pictures[i].getPixel(x, y)[0];
+                        var col = pictures[i].getPixel(x, y)[1];
                         if (col > max)
                             max = col;
                         if (col < min)
@@ -356,7 +356,7 @@ namespace IrisCode
             {
                 for (int y = 0; y < newBmpTbl.Height; y++)
                 {
-                    var col = newBmpTbl.getPixel(x, y)[0];
+                    var col = newBmpTbl.getPixel(x, y)[1];
 
                     int distMin = Math.Abs(col - fmin);
                     int distMid1 = Math.Abs(col - fmid1);
@@ -366,15 +366,15 @@ namespace IrisCode
                     int minV = Math.Min(distMin, Math.Min(distMid1, Math.Min(distMid2, distMax)));
                     if (minV == distMin)
                     {
-                        newBmpTbl.setPixel(x, y, new byte[] { 0, 0, 0 ,255});
+                        newBmpTbl.setPixel(x, y, new byte[] { 255, 0, 0, 0 });
                     }
                     else if (minV == distMid1)
                     {
-                        newBmpTbl.setPixel(x, y, new byte[] { (byte)fmid1, (byte)fmid1, (byte)fmid1, 0 });
+                        newBmpTbl.setPixel(x, y, new byte[] { 255, (byte)fmid1, (byte)fmid1, (byte)fmid1 });
                     }
                     else if (minV == distMid2)
                     {
-                        newBmpTbl.setPixel(x, y, new byte[] { (byte)fmid2, (byte)fmid2, (byte)fmid2, 0 });
+                        newBmpTbl.setPixel(x, y, new byte[] { 255, (byte)fmid2, (byte)fmid2, (byte)fmid2 });
                     }
                     else
                     {
@@ -394,7 +394,7 @@ namespace IrisCode
                 for (int y = 0; y < btm.Height; y++)
                 {
                     var oldColour = btm.getPixel(x, y);
-                    if (oldColour[0] == 0)
+                    if (oldColour[1] == 0)
                     {
                         bool isAlone = true;
 
@@ -405,7 +405,7 @@ namespace IrisCode
                                 if (x + x2 >= 0 && x + x2 < btm.Width && y + y2 >= 0 && y + y2 < btm.Height)
                                 {
                                     var col = btm.getPixel(x + x2, y + y2);
-                                    if (col[0] == 0)
+                                    if (col[1] == 0)
                                     {
                                         isAlone = false;
                                         break;
@@ -416,7 +416,7 @@ namespace IrisCode
 
                         if (isAlone)
                         {
-                            tempPict.setPixel(x, y, new byte[] { 0, 0, 0, 255 });
+                            tempPict.setPixel(x, y, new byte[] { 255, 0, 0, 0 });
                         }
                     }
                 }
@@ -459,7 +459,7 @@ namespace IrisCode
                 {
                     for (int y = 0; y < pictures[i].Height; y++)
                     {
-                        var col = pictures[i].getPixel(x, y)[0];
+                        var col = pictures[i].getPixel(x, y)[1];
                         if (col > max)
                             max = col;
                         if (col < min)
@@ -489,7 +489,7 @@ namespace IrisCode
             {
                 for (int y = 0; y < newBmpTbl.Height; y++)
                 {
-                    var col = newBmpTbl.getPixel(x, y)[0];
+                    var col = newBmpTbl.getPixel(x, y)[1];
 
                     int distMin = Math.Abs(col - fmin);
                     int distMid1 = Math.Abs(col - fmid1);
@@ -499,15 +499,15 @@ namespace IrisCode
                     int minV = Math.Min(distMin, Math.Min(distMid1, Math.Min(distMid2, distMax)));
                     if (minV == distMin)
                     {
-                        newBmpTbl.setPixel(x, y, new byte[] { 0, 0, 0 });
+                        newBmpTbl.setPixel(x, y, new byte[] { 255, 0, 0, 0 });
                     }
                     else if (minV == distMid1)
                     {
-                        newBmpTbl.setPixel(x, y, new byte[] { (byte)fmid2, (byte)fmid2, (byte)fmid2, 0 });
+                        newBmpTbl.setPixel(x, y, new byte[] { 255, (byte)fmid2, (byte)fmid2, (byte)fmid2 });
                     }
                     else if (minV == distMid2)
                     {
-                        newBmpTbl.setPixel(x, y, new byte[] { (byte)fmid2, (byte)fmid2, (byte)fmid2, 0 });
+                        newBmpTbl.setPixel(x, y, new byte[] { 255, (byte)fmid2, (byte)fmid2, (byte)fmid2 });
                     }
                     else
                     {
@@ -540,7 +540,7 @@ namespace IrisCode
                     var b = (int)(y - ((r + minR) * sins[t]));
                     if (a >= 0 && b >= 0 && a < wid && b < hig)
                     {
-                        sum += bitmap.getPixel(a, b)[0];
+                        sum += bitmap.getPixel(a, b)[1];
                         counter++;
                     }
                 }
@@ -594,7 +594,7 @@ namespace IrisCode
                             {
                                 Console.WriteLine("test");
                             }
-                            if (pictures[i].getPixel(x, y)[0] == 0)
+                            if (pictures[i].getPixel(x, y)[1] == 0)
                             {
                                 int currR = 0;
                                 int[] contrasts = FindContrasts((int)pictures[i].Width / 4, x, y, pictures[i]);

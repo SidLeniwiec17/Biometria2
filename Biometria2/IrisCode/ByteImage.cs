@@ -28,6 +28,7 @@ namespace IrisCode
             int size = (Width * Height * 4);
             Pixels = new byte[size];
             bitmap.CopyPixels(Pixels, Stride, 0);
+            ReMakePixelsOrder();
             Bitmap = new Bitmap(_bitmap);
         }
 
@@ -48,13 +49,13 @@ namespace IrisCode
         public byte[] getPixel(int x, int y)
         {
             int offset = y * Stride + x * 4;
-            return new byte[] { Pixels[offset], Pixels[offset + 1], Pixels[offset + 2] , Pixels[offset + 3] };
+            return new byte[] { Pixels[offset], Pixels[offset + 1], Pixels[offset + 2], Pixels[offset + 3] };
         }
 
         public void setPixel(int x, int y, byte[] color)
         {
             int offset = y * Stride + x * 4;
-            Pixels[offset ] = color[0];
+            Pixels[offset] = color[0];
             Pixels[offset + 1] = color[1];
             Pixels[offset + 2] = color[2];
             Pixels[offset + 3] = color[3];
@@ -84,10 +85,22 @@ namespace IrisCode
                 for (int y = 0; y < Height; y++)
                 {
                     byte[] bits = getPixel(x, y);
-                    image.SetPixel(x, y, Color.FromArgb((int)bits[3], (int)bits[0], (int)bits[1], (int)bits[2]));
+                    image.SetPixel(x, y, Color.FromArgb((int)bits[0], (int)bits[1], (int)bits[2], (int)bits[3]));
                 }
             }
             return image;
+        }
+
+        public void ReMakePixelsOrder()
+        {
+            for (int x = 0; x < Width; x++)
+            {
+                for (int y = 0; y < Height; y++)
+                {
+                    byte[] bits = getPixel(x, y);
+                    setPixel(x, y, new byte[] { bits[3], bits[2], bits[1], bits[0] });
+                }
+            }
         }
     }
 }
