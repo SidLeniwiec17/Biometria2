@@ -52,6 +52,11 @@ namespace IrisCode
             return new byte[] { Pixels[offset], Pixels[offset + 1], Pixels[offset + 2], Pixels[offset + 3] };
         }
 
+        public int getPixelIndex(int x, int y)
+        {
+            return y * Stride + x * 4;
+        }
+
         public void setPixel(int x, int y, byte[] color)
         {
             int offset = y * Stride + x * 4;
@@ -59,6 +64,15 @@ namespace IrisCode
             Pixels[offset + 1] = color[1];
             Pixels[offset + 2] = color[2];
             Pixels[offset + 3] = color[3];
+        }
+
+        public void setPixel(int x, int y, byte a, byte r, byte g, byte b)
+        {
+            int offset = y * Stride + x * 4;
+            Pixels[offset] = a;
+            Pixels[offset + 1] = r;
+            Pixels[offset + 2] = g;
+            Pixels[offset + 3] = b;
         }
 
         public System.Windows.Media.ImageSource ToBitmapSource()

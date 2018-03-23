@@ -57,6 +57,13 @@ namespace IrisCode
             if (dialog.ShowDialog() == true)
             {
                 BlakWait.Visibility = Visibility.Visible;
+                pupilX = 0;
+                pupilY = 0;
+                pupilR = 0;
+                irisX = 0;
+                irisY = 0;
+                irisR = 0;
+
                 await LoadImages(new BitmapImage(new Uri(dialog.FileName)), dialog.FileName);
                 BlakWait.Visibility = Visibility.Collapsed;
             }
@@ -76,20 +83,19 @@ namespace IrisCode
             Console.WriteLine("Done.");
         }
 
-        private async void Test_Button(object sender, RoutedEventArgs e)
+        private async void Lines_Button(object sender, RoutedEventArgs e)
         {
-            if (!(newBmp != null && newBmpTbl != null))
+            if (!(newBmp != null && newBmpTbl != null) && pupilR != 0 && irisR != 0)
             {
                 MessageBox.Show("Load image!");
                 return;
             }
             BlakWait.Visibility = Visibility.Visible;
-
-
-            await RunGaussFilter();
+            newBmpTbl = new ByteImage(originalBitmapTbl);
+            await RunGreyScale();
+            await DrawLines();
             img.Source = newBmpTbl.ToBitmapSource();
             BlakWait.Visibility = Visibility.Collapsed;
-            //      img.Source = newBmpTbl.ToBitmapSource();
             Console.WriteLine("Test.");
         }
 
@@ -117,7 +123,7 @@ namespace IrisCode
         {
             await RunGreyScale();
             await ThreeColors();
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 2; i++)
             {
                 await RunGaussFilter();
                 await RunBlack();
@@ -224,7 +230,15 @@ namespace IrisCode
         {
             await Task.Run(() =>
             {
-                Helper.RemoveSingleNoises(newBmpTbl); ;
+                Helper.RemoveSingleNoises(newBmpTbl);
+            });
+        }
+
+        public async Task DrawLines()
+        {
+            await Task.Run(() =>
+            {
+                Helper.DrawLines(newBmpTbl, pupilX, pupilY, pupilR, irisX, irisY, irisR);
             });
         }
     }
