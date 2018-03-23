@@ -208,15 +208,58 @@ namespace IrisCode
             int dist = ((irisR - ((irisR - pupilR) / 10)) - pupilR) / 8;
 
 
-            firstLine = GetSingleLine(newBmpTbl, pupilX, pupilY, pupilR + (1 * dist), coss, sins);
-            secondLine = GetSingleLine(newBmpTbl, pupilX, pupilY, pupilR + (2 * dist), coss, sins);
-            thirdLine = GetSingleLine(newBmpTbl, pupilX, pupilY, pupilR + (3 * dist), coss, sins);
-            forthLine = GetSingleLine(newBmpTbl, pupilX, pupilY, pupilR + (4 * dist), coss, sins);
-            fifthLine = GetSingleLine(newBmpTbl, pupilX, pupilY, pupilR + (5 * dist), coss, sins);
-            sixthLine = GetSingleLine(newBmpTbl, pupilX, pupilY, pupilR + (6 * dist), coss, sins);
-            seventhLine = GetSingleLine(newBmpTbl, pupilX, pupilY, pupilR + (7 * dist), coss, sins);
-            eighthLine = GetSingleLine(newBmpTbl, pupilX, pupilY, pupilR + (8 * dist), coss, sins);
-            ;
+            firstLine = GetSingleLine(newBmpTbl, pupilX, pupilY, pupilR + (1 * dist), coss, sins, 1);
+            secondLine = GetSingleLine(newBmpTbl, pupilX, pupilY, pupilR + (2 * dist), coss, sins, 1);
+            thirdLine = GetSingleLine(newBmpTbl, pupilX, pupilY, pupilR + (3 * dist), coss, sins, 1);
+            forthLine = GetSingleLine(newBmpTbl, pupilX, pupilY, pupilR + (4 * dist), coss, sins, 1);
+
+            fifthLine = GetSingleLine(newBmpTbl, pupilX, pupilY, pupilR + (5 * dist), coss, sins, 2);
+            sixthLine = GetSingleLine(newBmpTbl, pupilX, pupilY, pupilR + (6 * dist), coss, sins, 2);
+
+            seventhLine = GetSingleLine(newBmpTbl, pupilX, pupilY, pupilR + (7 * dist), coss, sins, 3);
+            eighthLine = GetSingleLine(newBmpTbl, pupilX, pupilY, pupilR + (8 * dist), coss, sins, 3);
+                
+            List<byte[]> lines = new List<byte[]>();
+            lines.Add(firstLine);
+            lines.Add(secondLine);
+            lines.Add(thirdLine);
+            lines.Add(forthLine);
+            lines.Add(fifthLine);
+            lines.Add(sixthLine);
+            lines.Add(seventhLine);
+            lines.Add(eighthLine);
+
+            Bitmap btm = new Bitmap(newBmpTbl.Bitmap.Width, newBmpTbl.Bitmap.Height + (3 * 8), newBmpTbl.Bitmap.PixelFormat);
+            for (int x = 0; x < btm.Width; x++)
+            {
+                for (int y = 0; y < newBmpTbl.Bitmap.Height; y++)
+                {
+                    btm.SetPixel(x, y, newBmpTbl.Bitmap.GetPixel(x, y));
+                }
+            }
+            int innerCounter = 0;
+            for (int y = newBmpTbl.Bitmap.Height, o = 0; y < btm.Height && o < 8; y++ )
+            {
+                while (true)
+                {
+                    for (int x = 0; x < lines[o].Length; x++)
+                    {
+                        btm.SetPixel(x, y + innerCounter, Color.FromArgb(lines[o][x], lines[o][x], lines[o][x]));
+                    }
+                    innerCounter++;
+                    if (innerCounter == 3)
+                    {
+                        innerCounter = 0;
+                        o++;
+                        break;
+                    }
+                }
+            }
+
+            System.Windows.Media.Imaging.BitmapSource bitmapSource =  System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(btm.GetHbitmap(), IntPtr.Zero, Int32Rect.Empty, System.Windows.Media.Imaging.BitmapSizeOptions.FromEmptyOptions());
+            System.Windows.Media.Imaging.WriteableBitmap writeableBitmap = new System.Windows.Media.Imaging.WriteableBitmap(bitmapSource);
+
+            newBmpTbl = new ByteImage(writeableBitmap, btm);
         }
 
         internal static void DrawInnerCircle(ByteImage originalBitmapTbl, Tuple<int, int, int> pupCenter)
@@ -577,7 +620,16 @@ namespace IrisCode
             }
         }
 
-        public static byte[] GetSingleLine(ByteImage bitmap, int x, int y, int R, double[] coss, double[] sins)
+        public static bool isTinCone(int t)
+        {
+            if (t > 195 || t + 1 < 165)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public static byte[] GetSingleLine(ByteImage bitmap, int x, int y, int R, double[] coss, double[] sins, int mode = 0)
         {
             int wid = (int)bitmap.Width;
             int hig = (int)bitmap.Height;
@@ -586,37 +638,66 @@ namespace IrisCode
 
             for (int t = 0; t < 359; t++)
             {
-                var a = (int)(x - (R * coss[t]));
-                var b = (int)(y - (R * sins[t]));
-                var a2 = (int)(x - (R * coss[t + 1]));
-                var b2 = (int)(y - (R * sins[t + 1]));
+                if ((mode == 1 && isTinCone(t)) || (mode == 2 && isTinSecondCone(t)) || (mode == 3 && isTinBiggestCone(t)) || mode == 0)
+                {
+                    var a = (int)(x - (R * coss[t]));
+                    var b = (int)(y - (R * sins[t]));
+                    var a2 = (int)(x - (R * coss[t + 1]));
+                    var b2 = (int)(y - (R * sins[t + 1]));
 
-                if (Math.Abs(a2 - a) == 0 && Math.Abs(b2 - b) == 0)
-                {
-                    pixels.Add(SinglePoints(bitmap, a, b));
-                }
-                else if (a2 - a > b2 - b && Math.Abs(a2 - a) != 0 && Math.Abs(b2 - b) != 0)
-                {
-                    //bardziej poziomo
-                    pixels.AddRange(MoreHorizontal(bitmap, a, b, a2, b2));
-                }
-                else if (a2 - a <= b2 - b && Math.Abs(a2 - a) != 0 && Math.Abs(b2 - b) != 0)
-                {
-                    //bardziej pionowo
-                    pixels.AddRange(MoreVertical(bitmap, a, b, a2, b2));
-                }
-                else if (Math.Abs(a2 - a) == 0 && Math.Abs(b2 - b) != 0)
-                {
-                    //pionowo
-                    pixels.AddRange(Vertical(bitmap, a, b, a2, b2));
-                }
-                else if (Math.Abs(a2 - a) != 0 && Math.Abs(b2 - b) != 0)
-                {
-                    //poziomo
-                    pixels.AddRange(Horizontal(bitmap, a, b, a2, b2));
+                    if (Math.Abs(a2 - a) == 0 && Math.Abs(b2 - b) == 0)
+                    {
+                        pixels.Add(SinglePoints(bitmap, a, b));
+                    }
+                    else if (a2 - a > b2 - b && Math.Abs(a2 - a) != 0 && Math.Abs(b2 - b) != 0)
+                    {
+                        //bardziej poziomo
+                        pixels.AddRange(MoreHorizontal(bitmap, a, b, a2, b2));
+                    }
+                    else if (a2 - a <= b2 - b && Math.Abs(a2 - a) != 0 && Math.Abs(b2 - b) != 0)
+                    {
+                        //bardziej pionowo
+                        pixels.AddRange(MoreVertical(bitmap, a, b, a2, b2));
+                    }
+                    else if (Math.Abs(a2 - a) == 0 && Math.Abs(b2 - b) != 0)
+                    {
+                        //pionowo
+                        pixels.AddRange(Vertical(bitmap, a, b, a2, b2));
+                    }
+                    else if (Math.Abs(a2 - a) != 0 && Math.Abs(b2 - b) != 0)
+                    {
+                        //poziomo
+                        pixels.AddRange(Horizontal(bitmap, a, b, a2, b2));
+                    }
                 }
             }
             return pixels.ToArray();
+        }
+
+        private static bool isTinSecondCone(int t)
+        {
+            if (t > 32 && t + 1 < 148)
+            {
+                return true;
+            }
+            if (t > 212 && t + 1 < 328)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        private static bool isTinBiggestCone(int t)
+        {
+            if (t > 45 && t + 1 < 135)
+            {
+                return true;
+            }
+            if (t > 225 && t + 1 < 315)
+            {
+                return true;
+            }
+            return false;
         }
 
         private static List<byte> Horizontal(ByteImage bitmap, int a, int b, int a2, int b2)
