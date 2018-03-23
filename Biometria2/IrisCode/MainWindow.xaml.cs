@@ -30,6 +30,10 @@ namespace IrisCode
         public WriteableBitmap WoriginalBitmap;
         public ByteImage originalBitmapTbl;
 
+        public Bitmap codeBitmap;
+        public WriteableBitmap WcodeBitmap;
+        public ByteImage codeBitmapTbl;
+
         public int borderColor = 255;
         public int borderIrisColor = 255;
 
@@ -76,7 +80,7 @@ namespace IrisCode
                 MessageBox.Show("Load image!");
                 return;
             }
-            BlakWait.Visibility = Visibility.Visible;
+            BlakWait.Visibility = Visibility.Visible;           
             await CutOffIris();
             BlakWait.Visibility = Visibility.Collapsed;
             img.Source = newBmpTbl.ToBitmapSource();
@@ -94,7 +98,10 @@ namespace IrisCode
             newBmpTbl = new ByteImage(originalBitmapTbl);
             await RunGreyScale();
             await DrawLines();
+            newBmpTbl = new ByteImage(originalBitmapTbl);
+            await CutOffStuff();
             img.Source = newBmpTbl.ToBitmapSource();
+            code.Source = codeBitmapTbl.ToBitmapSource();
             BlakWait.Visibility = Visibility.Collapsed;
             Console.WriteLine("Test.");
         }
@@ -117,10 +124,24 @@ namespace IrisCode
             originalBitmap = (Bitmap)Bitmap.FromFile(FileName);
             WoriginalBitmap = new WriteableBitmap(temp);
             originalBitmapTbl = new ByteImage(WoriginalBitmap, newBmp);
+
+
+            codeBitmap = (Bitmap)Bitmap.FromFile(FileName);
+            WcodeBitmap = new WriteableBitmap(temp);
+            codeBitmapTbl = new ByteImage(WoriginalBitmap, newBmp);
         }
 
         private async Task CutOffIris()
         {
+            VERYBAD:
+            pupilX = 0;
+            pupilY = 0;
+            pupilR = 0;
+            irisX = 0;
+            irisY = 0;
+            irisR = 0;
+            newBmpTbl = new ByteImage(originalBitmapTbl);
+
             await RunGreyScale();
             await ThreeColors();
             for (int i = 0; i < 2; i++)
@@ -146,7 +167,7 @@ namespace IrisCode
 
             await RunBlack();
             await FiveColors();
-            await RunFullBlack();
+            //await RunFullBlack();
 
             await RunRemoveSingleNoises();
 
@@ -157,6 +178,10 @@ namespace IrisCode
                 irisY = IrisCenter.Item2;
                 irisR = IrisCenter.Item3;
             });
+            if(irisR == -1)
+            {
+                goto VERYBAD;
+            }
             newBmpTbl = new ByteImage(originalBitmapTbl);
             await CutOffStuff();
             img.Source = newBmpTbl.ToBitmapSource();
@@ -238,7 +263,7 @@ namespace IrisCode
         {
             await Task.Run(() =>
             {
-                Helper.DrawLines(newBmpTbl, pupilX, pupilY, pupilR, irisX, irisY, irisR);
+                codeBitmapTbl = Helper.DrawLines(newBmpTbl, pupilX, pupilY, pupilR, irisX, irisY, irisR);
             });
         }
     }

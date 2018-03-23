@@ -186,7 +186,7 @@ namespace IrisCode
             }
         }
 
-        internal static void DrawLines(ByteImage newBmpTbl, int pupilX, int pupilY, int pupilR, int irisX, int irisY, int irisR)
+        internal static ByteImage DrawLines(ByteImage newBmpTbl, int pupilX, int pupilY, int pupilR, int irisX, int irisY, int irisR)
         {
             byte[] firstLine;
             byte[] secondLine;
@@ -205,7 +205,7 @@ namespace IrisCode
                 sins[t] = Math.Sin(t * Math.PI / 180);
             }
 
-            int dist = ((irisR - ((irisR - pupilR) / 10)) - pupilR) / 8;
+            int dist = ((irisR - ((irisR - pupilR) / 4)) - pupilR) / 8;
 
 
             firstLine = GetSingleLine(newBmpTbl, pupilX, pupilY, pupilR + (1 * dist), coss, sins, 1);
@@ -218,7 +218,7 @@ namespace IrisCode
 
             seventhLine = GetSingleLine(newBmpTbl, pupilX, pupilY, pupilR + (7 * dist), coss, sins, 3);
             eighthLine = GetSingleLine(newBmpTbl, pupilX, pupilY, pupilR + (8 * dist), coss, sins, 3);
-                
+
             List<byte[]> lines = new List<byte[]>();
             lines.Add(firstLine);
             lines.Add(secondLine);
@@ -229,37 +229,40 @@ namespace IrisCode
             lines.Add(seventhLine);
             lines.Add(eighthLine);
 
-            Bitmap btm = new Bitmap(newBmpTbl.Bitmap.Width, newBmpTbl.Bitmap.Height + (3 * 8), newBmpTbl.Bitmap.PixelFormat);
+            int max = 0;
+            for (int i = 0; i < lines.Count; i++)
+            {
+                if (lines[i].Length > max)
+                {
+                    max = lines[i].Length;
+                }
+            }
+
+            Bitmap btm = new Bitmap(max, (3 * 8), newBmpTbl.Bitmap.PixelFormat);
             for (int x = 0; x < btm.Width; x++)
             {
-                for (int y = 0; y < newBmpTbl.Bitmap.Height; y++)
+                for (int y = 0; y < btm.Height; y++)
                 {
-                    btm.SetPixel(x, y, newBmpTbl.Bitmap.GetPixel(x, y));
-                }
-            }
-            int innerCounter = 0;
-            for (int y = newBmpTbl.Bitmap.Height, o = 0; y < btm.Height && o < 8; y++ )
-            {
-                while (true)
-                {
-                    for (int x = 0; x < lines[o].Length; x++)
-                    {
-                        btm.SetPixel(x, y + innerCounter, Color.FromArgb(lines[o][x], lines[o][x], lines[o][x]));
-                    }
-                    innerCounter++;
-                    if (innerCounter == 3)
-                    {
-                        innerCounter = 0;
-                        o++;
-                        break;
-                    }
+                    btm.SetPixel(x, y, Color.FromArgb(0, 0, 255));
                 }
             }
 
-            System.Windows.Media.Imaging.BitmapSource bitmapSource =  System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(btm.GetHbitmap(), IntPtr.Zero, Int32Rect.Empty, System.Windows.Media.Imaging.BitmapSizeOptions.FromEmptyOptions());
+            for (int i = 0; i < 8; i++)
+            {
+                for (int x = 0; x < lines[i].Length; x++)
+                {
+                    btm.SetPixel(x, (i * 3), Color.FromArgb(lines[i][x], lines[i][x], lines[i][x]));
+                    btm.SetPixel(x, (i * 3) + 1, Color.FromArgb(lines[i][x], lines[i][x], lines[i][x]));
+                    btm.SetPixel(x, (i * 3) + 2, Color.FromArgb(lines[i][x], lines[i][x], lines[i][x]));
+                }
+            }
+
+            System.Windows.Media.Imaging.BitmapSource bitmapSource = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(btm.GetHbitmap(), IntPtr.Zero, Int32Rect.Empty, System.Windows.Media.Imaging.BitmapSizeOptions.FromEmptyOptions());
             System.Windows.Media.Imaging.WriteableBitmap writeableBitmap = new System.Windows.Media.Imaging.WriteableBitmap(bitmapSource);
 
-            newBmpTbl = new ByteImage(writeableBitmap, btm);
+            var imageForLines = new ByteImage(writeableBitmap, btm);
+
+            return imageForLines;
         }
 
         internal static void DrawInnerCircle(ByteImage originalBitmapTbl, Tuple<int, int, int> pupCenter)
@@ -306,6 +309,10 @@ namespace IrisCode
 
         public static Tuple<int, int, int> Iris(int borderColor, ByteImage bitmap, int px, int py, int pr)
         {
+            if (px == 0 || py == 0 || pr == 0)
+            {
+                return new Tuple<int, int, int>(-1,-1,-1);
+            }
             int threads = 8;
             ByteImage[] pictures = new ByteImage[threads];
             ConcurrentBag<int> Xs = new ConcurrentBag<int>();
@@ -649,12 +656,12 @@ namespace IrisCode
                     {
                         pixels.Add(SinglePoints(bitmap, a, b));
                     }
-                    else if (a2 - a > b2 - b && Math.Abs(a2 - a) != 0 && Math.Abs(b2 - b) != 0)
+                    else if (Math.Abs(a2 - a) > Math.Abs(b2 - b) && Math.Abs(a2 - a) != 0 && Math.Abs(b2 - b) != 0)
                     {
                         //bardziej poziomo
                         pixels.AddRange(MoreHorizontal(bitmap, a, b, a2, b2));
                     }
-                    else if (a2 - a <= b2 - b && Math.Abs(a2 - a) != 0 && Math.Abs(b2 - b) != 0)
+                    else if (Math.Abs(a2 - a) <= Math.Abs(b2 - b) && Math.Abs(a2 - a) != 0 && Math.Abs(b2 - b) != 0)
                     {
                         //bardziej pionowo
                         pixels.AddRange(MoreVertical(bitmap, a, b, a2, b2));
@@ -664,10 +671,14 @@ namespace IrisCode
                         //pionowo
                         pixels.AddRange(Vertical(bitmap, a, b, a2, b2));
                     }
-                    else if (Math.Abs(a2 - a) != 0 && Math.Abs(b2 - b) != 0)
+                    else if (Math.Abs(a2 - a) != 0 && Math.Abs(b2 - b) == 0)
                     {
                         //poziomo
                         pixels.AddRange(Horizontal(bitmap, a, b, a2, b2));
+                    }
+                    else
+                    {
+                        Console.WriteLine("nie weszlo");
                     }
                 }
             }
@@ -703,7 +714,7 @@ namespace IrisCode
         private static List<byte> Horizontal(ByteImage bitmap, int a, int b, int a2, int b2)
         {
             List<byte> list = new List<byte>();
-            for (int i = -Math.Abs(b2 - b) / 2; i < Math.Abs(b2 - b) / 2; i++)
+            for (int i = -Math.Abs(a2 - a) / 2; i < Math.Abs(a2 - a) / 2; i++)
             {
                 int sum = 0;
                 int counter = 0;
@@ -724,7 +735,7 @@ namespace IrisCode
                 }
                 else
                 {
-                    list.Add(255);
+                    list.Add(0);
                 }
             }
             return list;
@@ -733,7 +744,7 @@ namespace IrisCode
         private static List<byte> Vertical(ByteImage bitmap, int a, int b, int a2, int b2)
         {
             List<byte> list = new List<byte>();
-            for (int i = -Math.Abs(a2 - a) / 2; i < Math.Abs(a2 - a) / 2; i++)
+            for (int i = -Math.Abs(b2 - b) / 2; i < Math.Abs(b2 - b) / 2; i++)
             {
                 int sum = 0;
                 int counter = 0;
@@ -754,7 +765,7 @@ namespace IrisCode
                 }
                 else
                 {
-                    list.Add(255);
+                    list.Add(0);
                 }
             }
             return list;
@@ -787,7 +798,7 @@ namespace IrisCode
                 }
                 else
                 {
-                    list.Add(255);
+                    list.Add(0);
                 }
             }
             return list;
@@ -820,7 +831,7 @@ namespace IrisCode
                 }
                 else
                 {
-                    list.Add(255);
+                    list.Add(0);
                 }
             }
             return list;
