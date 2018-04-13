@@ -5,11 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:IrisCode"
         mc:Ignorable="d"
-         Title="MainWindow" Height="650" Width="1050">
+         Title="MainWindow" Height="650" Width="1250">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="160"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="90"/>
         </Grid.ColumnDefinitions>
 
         <Grid Grid.Column= "0">
@@ -43,13 +44,46 @@
 
         <Grid Grid.Column= "1">
             <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <ScrollViewer  Grid.Row="0"  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <Image  Grid.Row="0" Name="ori2"
+               Margin="5,5,5,5"
+               Stretch="None"
+               SnapsToDevicePixels="True"
+               RenderOptions.BitmapScalingMode="HighQuality"/>
+            </ScrollViewer>
+            <ScrollViewer  Grid.Row="1"  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <Image  Grid.Row="1" Name="img2"
+               Margin="5,5,5,5"
+               Stretch="None"
+               SnapsToDevicePixels="True"
+               RenderOptions.BitmapScalingMode="HighQuality"/>
+            </ScrollViewer>
+            <ScrollViewer  Grid.Row="2"  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <Image  Grid.Row="1" Name="code2"
+               Margin="5,5,5,5"
+               Stretch="None"
+               SnapsToDevicePixels="True"
+               RenderOptions.BitmapScalingMode="HighQuality"/>
+            </ScrollViewer>
+        </Grid>
+
+        <Grid Grid.Column= "2">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
                 <RowDefinition/>
                 <RowDefinition/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <Button Grid.Row="0" Content="Upload Photo" Grid.Column="0" Click="Load_Button" />
-            <Button Grid.Row="1" Content="Cut Off Iris" Grid.Column="0" Click="CutOffIris_Button" />
-            <Button Grid.Row="2" Content="DrawLines" Grid.Column="0" Click="Lines_Button" />
+            <Button Grid.Row="0" Content="Upload Photo" Grid.Column="0" Click="Load1_Button" />
+            <Button Grid.Row="2" Content="Cut Off Iris" Grid.Column="0" Click="CutOffIris1_Button" />
+            <Button Grid.Row="3" Content="Draw Code" Grid.Column="0" Click="Lines1_Button" />
+            <Button Grid.Row="1" Content="Upload Photo 2" Grid.Column="0" Click="Load2_Button" />
+            <Button Grid.Row="4" Content="Compare" Grid.Column="0" Click="Compare_Button" />
         </Grid>
         <Border Name="BlakWait" BorderBrush="Black" BorderThickness="1" Background="#80000000" Visibility="Collapsed" Grid.RowSpan="3" Grid.ColumnSpan="4" >
             <Grid>

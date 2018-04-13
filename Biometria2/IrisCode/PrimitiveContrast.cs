@@ -52,7 +52,7 @@ namespace IrisCode
             a.Y = 255 - a.Y;
             b.Y = 255 - b.Y;
 
-            return (int)(((b.Y - a.Y) / (b.X - a.X) * value) + (b.Y - ((b.Y - a.Y) / (b.X - a.X) * b.X)));
+            return (int)(((b.Y - a.Y) / (b.X - a.X) * value) + (b.Y - ((b.Y - a.Y) / (b.X - a.X) * b.X))) ;
         }
 
         public byte[] GetColor(byte[] c)
