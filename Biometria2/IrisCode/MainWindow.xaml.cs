@@ -45,6 +45,11 @@ namespace IrisCode
         public WriteableBitmap WoriginalBitmap2;
         public ByteImage originalBitmapTbl2;
 
+        public byte[] finalcode1;
+        public byte[] finalcode2;
+
+        public double finalSimilarity;
+
         public Bitmap codeBitmap2;
         public WriteableBitmap WcodeBitmap2;
         public ByteImage codeBitmapTbl2;
@@ -90,6 +95,8 @@ namespace IrisCode
                 irisY = 0;
                 irisR = 0;
 
+                finalSimilarity = -1.0;
+
                 await LoadImages(new BitmapImage(new Uri(dialog.FileName)), dialog.FileName, 0);
                 BlakWait.Visibility = Visibility.Collapsed;
             }
@@ -103,9 +110,10 @@ namespace IrisCode
                 return;
             }
             BlakWait.Visibility = Visibility.Visible;
-
-            await CutOffIris(0);
-            await CutOffIris(1);
+            if (newBmpTbl != null)
+                await CutOffIris(0);
+            if (newBmpTbl2 != null)
+                await CutOffIris(1);
 
             BlakWait.Visibility = Visibility.Collapsed;
             if (newBmpTbl != null)
@@ -134,14 +142,35 @@ namespace IrisCode
                 irisY2 = 0;
                 irisR2 = 0;
 
+                finalSimilarity = -1.0;
+
                 await LoadImages(new BitmapImage(new Uri(dialog.FileName)), dialog.FileName, 1);
                 BlakWait.Visibility = Visibility.Collapsed;
             }
         }
 
-        private void Compare_Button(object sender, RoutedEventArgs e)
+        private async void Compare_Button(object sender, RoutedEventArgs e)
         {
-
+            if (finalcode1 == null || finalcode2 == null)
+            {
+                MessageBox.Show("Calculate codes !");
+                return;
+            }
+            BlakWait.Visibility = Visibility.Visible;
+            await compareCodes();
+            if(finalSimilarity > 1.0)
+            {
+                CompateTextBox.Text = finalSimilarity + " %";
+                if(finalSimilarity >= 90.0)
+                {
+                    CompateTextBox.SelectionBrush = System.Windows.Media.Brushes.Green;
+                }
+                else
+                {
+                    CompateTextBox.SelectionBrush = System.Windows.Media.Brushes.Red;
+                }
+            }
+            BlakWait.Visibility = Visibility.Collapsed;
         }
 
         private async void Lines1_Button(object sender, RoutedEventArgs e)
@@ -497,20 +526,40 @@ namespace IrisCode
             }
         }
 
+        public async Task compareCodes()
+        {
+            await Task.Run(() =>
+            {
+                int diffCounter = 0;
+                for (int i = 0; i < finalcode1.Length; i++)
+                {
+                    if (finalcode1[i] != finalcode2[i])
+                    {
+                        diffCounter++;
+                    }
+                }
+                finalSimilarity = Math.Round((double)((diffCounter * 100.0) / (double)finalcode1.Length),2);
+            });
+        }
+
         public async Task DrawLines(int mode)
         {
             if (mode == 0)
             {
                 await Task.Run(() =>
                 {
-                    codeBitmapTbl = Helper.DrawLines(newBmpTbl, pupilX, pupilY, pupilR, irisX, irisY, irisR);
+                    var tup = Helper.DrawLines(newBmpTbl, pupilX, pupilY, pupilR, irisX, irisY, irisR);
+                    codeBitmapTbl = tup.Item1;
+                    finalcode1 = tup.Item2;
                 });
             }
-            else if(mode == 1)
+            else if (mode == 1)
             {
                 await Task.Run(() =>
                 {
-                    codeBitmapTbl2 = Helper.DrawLines(newBmpTbl2, pupilX2, pupilY2, pupilR2, irisX2, irisY2, irisR2);
+                    var tup2 = Helper.DrawLines(newBmpTbl2, pupilX2, pupilY2, pupilR2, irisX2, irisY2, irisR2);
+                    codeBitmapTbl2 = tup2.Item1;
+                    finalcode2 = tup2.Item2;
                 });
             }
         }

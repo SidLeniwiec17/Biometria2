@@ -186,7 +186,7 @@ namespace IrisCode
             }
         }
 
-        internal static ByteImage DrawLines(ByteImage newBmpTbl, int pupilX, int pupilY, int pupilR, int irisX, int irisY, int irisR)
+        internal static Tuple<ByteImage, byte[]> DrawLines(ByteImage newBmpTbl, int pupilX, int pupilY, int pupilR, int irisX, int irisY, int irisR)
         {
             byte[] firstLine;
             byte[] secondLine;
@@ -220,49 +220,93 @@ namespace IrisCode
             eighthLine = GetSingleLine(newBmpTbl, pupilX, pupilY, pupilR + (8 * dist), coss, sins, 3);
 
             List<byte[]> lines = new List<byte[]>();
-            lines.Add(firstLine);
-            lines.Add(secondLine);
-            lines.Add(thirdLine);
-            lines.Add(forthLine);
-            lines.Add(fifthLine);
-            lines.Add(sixthLine);
-            lines.Add(seventhLine);
-            lines.Add(eighthLine);
+            lines.Add(GetGradients(firstLine));
+            lines.Add(GetGradients(secondLine));
+            lines.Add(GetGradients(thirdLine));
+            lines.Add(GetGradients(forthLine));
+            lines.Add(GetGradients(fifthLine));
+            lines.Add(GetGradients(sixthLine));
+            lines.Add(GetGradients(seventhLine));
+            lines.Add(GetGradients(eighthLine));
 
-            int max = 0;
-            for (int i = 0; i < lines.Count; i++)
-            {
-                if (lines[i].Length > max)
-                {
-                    max = lines[i].Length;
-                }
-            }
 
-            Bitmap btm = new Bitmap(max, (3 * 8), newBmpTbl.Bitmap.PixelFormat);
+            Bitmap btm = new Bitmap(256 * 2, (3 * 8), newBmpTbl.Bitmap.PixelFormat);
             for (int x = 0; x < btm.Width; x++)
             {
                 for (int y = 0; y < btm.Height; y++)
                 {
-                    btm.SetPixel(x, y, Color.FromArgb(0, 0, 255));
+                    btm.SetPixel(x, y, Color.FromArgb(0, 0, 0));
                 }
             }
 
             for (int i = 0; i < 8; i++)
             {
-                for (int x = 0; x < lines[i].Length; x++)
+                int counter = 0;
+                for (int x = 0; x < lines[i].Length - 1; x++)
                 {
-                    btm.SetPixel(x, (i * 3), Color.FromArgb(lines[i][x], lines[i][x], lines[i][x]));
-                    btm.SetPixel(x, (i * 3) + 1, Color.FromArgb(lines[i][x], lines[i][x], lines[i][x]));
-                    btm.SetPixel(x, (i * 3) + 2, Color.FromArgb(lines[i][x], lines[i][x], lines[i][x]));
+                    btm.SetPixel(counter, (i * 3), Color.FromArgb(lines[i][x], lines[i][x], lines[i][x]));
+                    btm.SetPixel(counter, (i * 3) + 1, Color.FromArgb(lines[i][x], lines[i][x], lines[i][x]));
+                    btm.SetPixel(counter, (i * 3) + 2, Color.FromArgb(lines[i][x], lines[i][x], lines[i][x]));
+
+                    btm.SetPixel(counter + 1, (i * 3), Color.FromArgb(lines[i][x], lines[i][x], lines[i][x]));
+                    btm.SetPixel(counter + 1, (i * 3) + 1, Color.FromArgb(lines[i][x], lines[i][x], lines[i][x]));
+                    btm.SetPixel(counter + 1, (i * 3) + 2, Color.FromArgb(lines[i][x], lines[i][x], lines[i][x]));
+                    counter += 2;
                 }
+                btm.SetPixel(btm.Width - 2, (i * 3), Color.FromArgb(lines[i][lines[i].Length - 1], lines[i][lines[i].Length - 1], lines[i][lines[i].Length - 1]));
+                btm.SetPixel(btm.Width - 2, (i * 3) + 1, Color.FromArgb(lines[i][lines[i].Length - 1], lines[i][lines[i].Length - 1], lines[i][lines[i].Length - 1]));
+                btm.SetPixel(btm.Width - 2, (i * 3) + 2, Color.FromArgb(lines[i][lines[i].Length - 1], lines[i][lines[i].Length - 1], lines[i][lines[i].Length - 1]));
+
+                btm.SetPixel(btm.Width - 1, (i * 3), Color.FromArgb(lines[i][lines[i].Length - 1], lines[i][lines[i].Length - 1], lines[i][lines[i].Length - 1]));
+                btm.SetPixel(btm.Width - 1, (i * 3) + 1, Color.FromArgb(lines[i][lines[i].Length - 1], lines[i][lines[i].Length - 1], lines[i][lines[i].Length - 1]));
+                btm.SetPixel(btm.Width - 1, (i * 3) + 2, Color.FromArgb(lines[i][lines[i].Length - 1], lines[i][lines[i].Length - 1], lines[i][lines[i].Length - 1]));
             }
+
 
             System.Windows.Media.Imaging.BitmapSource bitmapSource = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(btm.GetHbitmap(), IntPtr.Zero, Int32Rect.Empty, System.Windows.Media.Imaging.BitmapSizeOptions.FromEmptyOptions());
             System.Windows.Media.Imaging.WriteableBitmap writeableBitmap = new System.Windows.Media.Imaging.WriteableBitmap(bitmapSource);
 
             var imageForLines = new ByteImage(writeableBitmap, btm);
+            List<byte> totalCode = new List<byte>();
+            for (int i = 0; i < 8; i++)
+            {
+                totalCode.AddRange(lines[i]);
+            }
+            return new Tuple<ByteImage, byte[]>(imageForLines, totalCode.ToArray());
 
-            return imageForLines;
+        }
+
+        private static byte[] GetCode(byte[] firstLine)
+        {
+            List<byte> singleCode = new List<byte>();
+            int stepRange = firstLine.Length / 128;
+            for (int i = 0; i < 128 - 1; i++)
+            {
+                int diff = firstLine[i + 1] - firstLine[i];
+                if(diff > stepRange)
+                {
+                    singleCode.Add(0);
+                    singleCode.Add(0);
+                }
+                else if (diff <= stepRange && diff > 0)
+                {
+                    singleCode.Add(0);
+                    singleCode.Add(255);
+                }
+                else if (diff < 0 && diff >= -stepRange)
+                {
+                    singleCode.Add(255);
+                    singleCode.Add(255);
+                }
+                else if (diff < -stepRange)
+                {
+                    singleCode.Add(255);
+                    singleCode.Add(0);
+                }
+            }
+            singleCode.Add(0);
+            singleCode.Add(255);
+            return singleCode.ToArray();
         }
 
         internal static void DrawInnerCircle(ByteImage originalBitmapTbl, Tuple<int, int, int> pupCenter)
@@ -311,7 +355,7 @@ namespace IrisCode
         {
             if (px == 0 || py == 0 || pr == 0)
             {
-                return new Tuple<int, int, int>(-1,-1,-1);
+                return new Tuple<int, int, int>(-1, -1, -1);
             }
             int threads = 8;
             ByteImage[] pictures = new ByteImage[threads];
@@ -971,6 +1015,54 @@ namespace IrisCode
         {
             var dist = Math.Sqrt(((circle.Item1.X - x) * (circle.Item1.X - x)) + ((circle.Item1.Y - y) * (circle.Item1.Y - y)));
             return dist <= circle.Item2;
+        }
+
+        public static byte[] GetGradients(byte[] line)
+        {
+            byte[] gradients = new byte[128];
+
+            List<byte> newGradients = new List<byte>();
+
+            for (int i = 0; i < gradients.Length; i++)
+            {
+                float percentPosition = (float)i / (float)gradients.Length;
+                int leftPos = (int)(percentPosition * (float)line.Length);
+                int rightPos = leftPos + 1;
+                if (rightPos >= line.Length)
+                {
+                    rightPos = line.Length - 1;
+                    leftPos = line.Length - 2;
+                }
+                byte newVal = (byte)(((int)line[leftPos] + (int)line[rightPos]) / 2);
+                gradients[i] = newVal;
+            }
+
+
+            for (int i = 0; i < gradients.Length - 1; i++)
+            {
+                var diff = gradients[i + 1] - gradients[i];
+                if (diff > 1)
+                {
+                    newGradients.Add(0);
+                    newGradients.Add(0);
+                }
+                else if (diff <= 1 && diff > 0)
+                {
+                    newGradients.Add(0);
+                    newGradients.Add(255);
+                }
+                else if (diff <= 0 && diff > -1)
+                {
+                    newGradients.Add(255);
+                    newGradients.Add(0);
+                }
+                else
+                {
+                    newGradients.Add(255);
+                    newGradients.Add(255);
+                }
+            }
+            return newGradients.ToArray();
         }
     }
 }
