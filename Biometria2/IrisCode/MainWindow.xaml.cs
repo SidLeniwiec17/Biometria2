@@ -317,7 +317,7 @@ namespace IrisCode
                 await CutOffStuff(0);
                 img.Source = newBmpTbl.ToBitmapSource();
             }
-            else if(mode == 1)
+            else if (mode == 1)
             {
                 VERYBAD2:
                 pupilX2 = 0;
@@ -387,7 +387,7 @@ namespace IrisCode
             {
                 await Task.Run(() =>
                 {
-                    borderIrisColor = Helper.FiveColors(newBmpTbl2);
+                    borderIrisColor2 = Helper.FiveColors(newBmpTbl2);
                 });
             }
         }
@@ -538,7 +538,11 @@ namespace IrisCode
                         diffCounter++;
                     }
                 }
-                finalSimilarity = Math.Round((double)((diffCounter * 100.0) / (double)finalcode1.Length),2);
+                finalSimilarity = Math.Round((double)((diffCounter * 100.0) / (double)finalcode1.Length), 2);
+                if (diffCounter < 2)
+                {
+                    finalSimilarity = 100.0;
+                }
             });
         }
 

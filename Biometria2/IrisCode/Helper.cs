@@ -283,7 +283,7 @@ namespace IrisCode
             for (int i = 0; i < 128 - 1; i++)
             {
                 int diff = firstLine[i + 1] - firstLine[i];
-                if(diff > stepRange)
+                if (diff > stepRange)
                 {
                     singleCode.Add(0);
                     singleCode.Add(0);
@@ -380,35 +380,36 @@ namespace IrisCode
                 int tempX = 0;
                 int tempY = 0;
                 int tempR = 0;
-                for (int x = px - (i * w); x < px + ((i + 1) * w); x++)
+                //for (int x = px - (i * w); x < px + ((i + 1) * w); x++)
+                //{
+                // for (int y = py - 9; y < py + 9; y++)
+                // {
+                //if (pictures[i].Pixels[pictures[i].getPixelIndex(x, y) + 1] == 0)
+                //{
+                int currR = 0;
+                tempX = px;
+                tempY = py;
+                int[] contrasts = FindContrasts((int)pictures[i].Width / 4 + pr, px, py, pictures[i], (pr + 10));
+                for (int c = 0; c < contrasts.Length; c++)
                 {
-                    for (int y = py - 9; y < py + 9; y++)
+                    if (contrasts[c] >= borderValue)
                     {
-                        if (pictures[i].Pixels[pictures[i].getPixelIndex(x, y) + 1] == 0)
-                        {
-                            int currR = 0;
-                            int[] contrasts = FindContrasts((int)pictures[i].Width / 4 + pr, x, y, pictures[i], (pr + 10));
-                            for (int c = 0; c < contrasts.Length; c++)
-                            {
-                                if (contrasts[c] >= borderValue)
-                                {
-                                    currR = c;
-                                    break;
-                                }
-                            }
-                            if (currR > tempR)
-                            {
-                                tempX = x;
-                                tempY = y;
-                                tempR = currR;
-                            }
-                        }
+                        currR = c;
+                        break;
                     }
                 }
+                if (currR > tempR)
+                {
+                    tempR = currR;
+                }
+                //}
+                // }
+                // }
                 Xs.Add(tempX);
                 Ys.Add(tempY);
                 Rs.Add(tempR);
             });
+            //}
 
             for (int i = 0; i < threads; i++)
             {
@@ -426,7 +427,7 @@ namespace IrisCode
         public static int FiveColors(ByteImage newBmpTbl)
         {
             int borderColor = 255;
-            int threads = 16;
+            int threads = 8;
             ByteImage[] pictures = new ByteImage[threads];
             ConcurrentBag<int> mins = new ConcurrentBag<int>();
             ConcurrentBag<int> maxs = new ConcurrentBag<int>();
@@ -439,6 +440,7 @@ namespace IrisCode
             }
 
             Parallel.For(0, threads, i =>
+            //for (int i = 0; i < threads; i++)
             {
                 int min = 255;
                 int max = 0;
@@ -467,6 +469,7 @@ namespace IrisCode
                 sums.Add(totSum);
                 counters.Add(counter);
             });
+            //}
 
             int fmin = mins.Min();
             int fmax = maxs.Max();
@@ -562,7 +565,7 @@ namespace IrisCode
         public static int ThreeColors(ByteImage newBmpTbl)
         {
             int borderColor = 255;
-            int threads = 16;
+            int threads = 8;
             ByteImage[] pictures = new ByteImage[threads];
             ConcurrentBag<int> mins = new ConcurrentBag<int>();
             ConcurrentBag<int> maxs = new ConcurrentBag<int>();
@@ -576,6 +579,7 @@ namespace IrisCode
 
 
             Parallel.For(0, threads, i =>
+            //for (int i = 0; i < threads; i++)
             {
                 int min = 255;
                 int max = 0;
@@ -604,6 +608,7 @@ namespace IrisCode
                 sums.Add(totSum);
                 counters.Add(counter);
             });
+            //}
 
             int fmin = mins.Min();
             int fmax = maxs.Max();
@@ -650,9 +655,9 @@ namespace IrisCode
         {
             int sum = 0;
             int counter = 0;
-            for (int x2 = -1; x2 < 2; x2++)
+            for (int x2 = -2; x2 < 3; x2++)
             {
-                for (int y2 = -1; y2 < 2; y2++)
+                for (int y2 = -2; y2 < 3; y2++)
                 {
                     if (a + x2 >= 0 && b + y2 >= 0 && a + x2 < bitmap.Width && b + y2 < bitmap.Height)
                     {
@@ -687,14 +692,24 @@ namespace IrisCode
 
             List<byte> pixels = new List<byte>();
 
-            for (int t = 0; t < 359; t++)
+            for (int t = 0; t < 360; t++)
             {
                 if ((mode == 1 && isTinCone(t)) || (mode == 2 && isTinSecondCone(t)) || (mode == 3 && isTinBiggestCone(t)) || mode == 0)
                 {
                     var a = (int)(x - (R * coss[t]));
                     var b = (int)(y - (R * sins[t]));
-                    var a2 = (int)(x - (R * coss[t + 1]));
-                    var b2 = (int)(y - (R * sins[t + 1]));
+                    int a2;
+                    int b2;
+                    if (t + 1 >= 360)
+                    {
+                        a2 = (int)(x - (R * coss[0]));
+                        b2 = (int)(y - (R * sins[0]));
+                    }
+                    else
+                    {
+                        a2 = (int)(x - (R * coss[t + 1]));
+                        b2 = (int)(y - (R * sins[t + 1]));
+                    }
 
                     if (Math.Abs(a2 - a) == 0 && Math.Abs(b2 - b) == 0)
                     {
@@ -762,9 +777,9 @@ namespace IrisCode
             {
                 int sum = 0;
                 int counter = 0;
-                for (int x2 = -1; x2 < 2; x2++)
+                for (int x2 = -2; x2 < 3; x2++)
                 {
-                    for (int y2 = -1; y2 < 2; y2++)
+                    for (int y2 = -2; y2 < 3; y2++)
                     {
                         if (a + x2 + i >= 0 && b + y2 >= 0 && a + x2 + i < bitmap.Width && b + y2 < bitmap.Height)
                         {
@@ -792,9 +807,9 @@ namespace IrisCode
             {
                 int sum = 0;
                 int counter = 0;
-                for (int x2 = -1; x2 < 2; x2++)
+                for (int x2 = -2; x2 < 3; x2++)
                 {
-                    for (int y2 = -1; y2 < 2; y2++)
+                    for (int y2 = -2; y2 < 3; y2++)
                     {
                         if (a + x2 >= 0 && b + y2 + i >= 0 && a + x2 < bitmap.Width && b + y2 + i < bitmap.Height)
                         {
@@ -825,9 +840,9 @@ namespace IrisCode
 
                 int sum = 0;
                 int counter = 0;
-                for (int x2 = -1; x2 < 2; x2++)
+                for (int x2 = -2; x2 < 3; x2++)
                 {
-                    for (int y2 = -1; y2 < 2; y2++)
+                    for (int y2 = -2; y2 < 3; y2++)
                     {
                         if (nX + x2 >= 0 && nY + y2 >= 0 && nX + x2 < bitmap.Width && nY + y2 < bitmap.Height)
                         {
@@ -858,9 +873,9 @@ namespace IrisCode
 
                 int sum = 0;
                 int counter = 0;
-                for (int x2 = -1; x2 < 2; x2++)
+                for (int x2 = -2; x2 < 3; x2++)
                 {
-                    for (int y2 = -1; y2 < 2; y2++)
+                    for (int y2 = -2; y2 < 3; y2++)
                     {
                         if (nX + x2 >= 0 && nY + y2 >= 0 && nX + x2 < bitmap.Width && nY + y2 < bitmap.Height)
                         {
@@ -922,7 +937,7 @@ namespace IrisCode
 
         public static Tuple<int, int, int> PupilCenter(int borderColor, ByteImage bitmap)
         {
-            int threads = 16;
+            int threads = 8;
             ByteImage[] pictures = new ByteImage[threads];
             ConcurrentBag<int> Xs = new ConcurrentBag<int>();
             ConcurrentBag<int> Ys = new ConcurrentBag<int>();
@@ -983,6 +998,7 @@ namespace IrisCode
                 Ys.Add(tempY);
                 Rs.Add(tempR);
             });
+            //}
 
             for (int i = 0; i < threads; i++)
             {
@@ -1041,17 +1057,18 @@ namespace IrisCode
             for (int i = 0; i < gradients.Length - 1; i++)
             {
                 var diff = gradients[i + 1] - gradients[i];
-                if (diff > 1)
+                Console.WriteLine("Diff: " + diff);
+                if (diff >= 0 && diff < 63)
                 {
                     newGradients.Add(0);
                     newGradients.Add(0);
                 }
-                else if (diff <= 1 && diff > 0)
+                else if (diff >= 63)
                 {
                     newGradients.Add(0);
                     newGradients.Add(255);
                 }
-                else if (diff <= 0 && diff > -1)
+                else if (diff < 0 && diff >= -63)
                 {
                     newGradients.Add(255);
                     newGradients.Add(0);
