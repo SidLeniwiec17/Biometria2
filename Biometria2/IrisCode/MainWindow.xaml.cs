@@ -22,6 +22,9 @@ namespace IrisCode
     /// </summary>
     public partial class MainWindow : Window
     {
+        public bool pic1Calculated = false;
+        public bool pic2Calculated = false;
+
         public Bitmap newBmp;
         public WriteableBitmap WnewBmp;
         public ByteImage newBmpTbl;
@@ -98,6 +101,7 @@ namespace IrisCode
                 finalSimilarity = -1.0;
 
                 await LoadImages(new BitmapImage(new Uri(dialog.FileName)), dialog.FileName, 0);
+                pic1Calculated = false;
                 BlakWait.Visibility = Visibility.Collapsed;
             }
         }
@@ -109,18 +113,20 @@ namespace IrisCode
                 MessageBox.Show("Load image!");
                 return;
             }
+
             BlakWait.Visibility = Visibility.Visible;
-            if (newBmpTbl != null)
+            if (newBmpTbl != null && !pic1Calculated)
                 await CutOffIris(0);
-            if (newBmpTbl2 != null)
+            if (newBmpTbl2 != null && !pic2Calculated)
                 await CutOffIris(1);
 
             BlakWait.Visibility = Visibility.Collapsed;
-            if (newBmpTbl != null)
+            if (newBmpTbl != null && !pic1Calculated)
                 img.Source = newBmpTbl.ToBitmapSource();
-            if (newBmpTbl2 != null)
+            if (newBmpTbl2 != null && !pic2Calculated)
                 img2.Source = newBmpTbl2.ToBitmapSource();
             Console.WriteLine("Done.");
+
         }
 
         private async void Load2_Button(object sender, RoutedEventArgs e)
@@ -145,6 +151,7 @@ namespace IrisCode
                 finalSimilarity = -1.0;
 
                 await LoadImages(new BitmapImage(new Uri(dialog.FileName)), dialog.FileName, 1);
+                pic2Calculated = false;
                 BlakWait.Visibility = Visibility.Collapsed;
             }
         }
@@ -158,10 +165,10 @@ namespace IrisCode
             }
             BlakWait.Visibility = Visibility.Visible;
             await compareCodes();
-            if(finalSimilarity > 1.0)
+            if (finalSimilarity > 1.0)
             {
                 CompateTextBox.Text = finalSimilarity + " %";
-                if(finalSimilarity >= 90.0)
+                if (finalSimilarity >= 90.0)
                 {
                     CompateTextBox.SelectionBrush = System.Windows.Media.Brushes.Green;
                 }
@@ -182,7 +189,7 @@ namespace IrisCode
             }
             BlakWait.Visibility = Visibility.Visible;
 
-            if ((newBmp != null && newBmpTbl != null) && pupilR != 0 && irisR != 0)
+            if ((newBmp != null && newBmpTbl != null) && pupilR != 0 && irisR != 0 && !pic1Calculated)
             {
                 newBmpTbl = new ByteImage(originalBitmapTbl);
                 await RunGreyScale(0);
@@ -191,9 +198,10 @@ namespace IrisCode
                 await CutOffStuff(0);
                 img.Source = newBmpTbl.ToBitmapSource();
                 code.Source = codeBitmapTbl.ToBitmapSource();
+                pic1Calculated = true;
             }
 
-            if ((newBmp2 != null && newBmpTbl2 != null) && pupilR2 != 0 && irisR2 != 0)
+            if ((newBmp2 != null && newBmpTbl2 != null) && pupilR2 != 0 && irisR2 != 0 && !pic2Calculated)
             {
                 newBmpTbl2 = new ByteImage(originalBitmapTbl2);
                 await RunGreyScale(1);
@@ -202,6 +210,7 @@ namespace IrisCode
                 await CutOffStuff(1);
                 img2.Source = newBmpTbl2.ToBitmapSource();
                 code2.Source = codeBitmapTbl2.ToBitmapSource();
+                pic2Calculated = true;
             }
 
             BlakWait.Visibility = Visibility.Collapsed;
@@ -401,7 +410,7 @@ namespace IrisCode
                     Helper.CuttOffIris(newBmpTbl, new Tuple<System.Drawing.Point, int>(new System.Drawing.Point(pupilX, pupilY), pupilR + 5), new Tuple<System.Drawing.Point, int>(new System.Drawing.Point(irisX, irisY), irisR - 5));
                 });
             }
-            else if(mode == 1)
+            else if (mode == 1)
             {
                 await Task.Run(() =>
                 {
@@ -427,7 +436,7 @@ namespace IrisCode
                     Helper.GrayScale(newBmpTbl);
                 });
             }
-            else if(mode == 1)
+            else if (mode == 1)
             {
                 await Task.Run(() =>
                 {
