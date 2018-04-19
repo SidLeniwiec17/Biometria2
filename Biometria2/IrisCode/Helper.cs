@@ -1042,14 +1042,25 @@ namespace IrisCode
             for (int i = 0; i < gradients.Length; i++)
             {
                 float percentPosition = (float)i / (float)gradients.Length;
-                int leftPos = (int)(percentPosition * (float)line.Length);
-                int rightPos = leftPos + 1;
+                int middlePos = (int)(percentPosition * (float)line.Length);
+                int rightPos = middlePos + 1;
+                int leftPos = middlePos - 1;
                 if (rightPos >= line.Length)
                 {
+                    leftPos = line.Length - 3;
                     rightPos = line.Length - 1;
-                    leftPos = line.Length - 2;
+                    middlePos = line.Length - 2;
                 }
-                byte newVal = (byte)(((int)line[leftPos] + (int)line[rightPos]) / 2);
+                if (leftPos < 0)
+                {
+                    leftPos = 0;
+                    rightPos = 2;
+                    middlePos = 1;
+                }
+
+                double[] factors = GetParabolaFactors(leftPos, line[leftPos], middlePos, line[middlePos], rightPos, line[rightPos]);
+
+                byte newVal = (byte)GetInterpolatedValue(factors, percentPosition * (float)line.Length);
                 gradients[i] = newVal;
             }
 
@@ -1080,6 +1091,24 @@ namespace IrisCode
                 }
             }
             return newGradients.ToArray();
+        }
+
+        public static double[] GetParabolaFactors(double x1, double y1, double x2, double y2, double x3, double y3)
+        {
+            double[] factors = new double[3];
+
+            var denom = (x1 - x2) * (x1 - x3) * (x2 - x3);
+            factors[0] = (x3 * (y2 - y1) + x2 * (y1 - y3) + x1 * (y3 - y2)) / denom;
+            factors[1] = (x3 * x3 * (y1 - y2) + x2 * x2 * (y3 - y1) + x1 * x1 * (y2 - y3)) / denom;
+            factors[2] = (x2 * x3 * (x2 - x3) * y1 + x3 * x1 * (x3 - x1) * y2 + x1 * x2 * (x1 - x2) * y3) / denom;
+
+            return factors;
+        }
+
+        public static int GetInterpolatedValue(double[] factors, double x)
+        {
+            double val = (factors[0] * (x * x)) + (factors[1] * x) + factors[2];
+            return (int)val;
         }
     }
 }

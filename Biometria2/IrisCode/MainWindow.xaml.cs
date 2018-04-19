@@ -547,7 +547,7 @@ namespace IrisCode
                         diffCounter++;
                     }
                 }
-                finalSimilarity = Math.Round((double)((diffCounter * 100.0) / (double)finalcode1.Length), 2);
+                finalSimilarity = Math.Round((double)(((finalcode1.Length - diffCounter) * 100.0) / (double)finalcode1.Length), 2);
                 if (diffCounter < 2)
                 {
                     finalSimilarity = 100.0;
