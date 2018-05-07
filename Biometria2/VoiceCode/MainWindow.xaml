@@ -1,0 +1,36 @@
+﻿<Window x:Class="VoiceCode.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:VoiceCode"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="350" Width="825">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+        </Grid>
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Button Grid.Row="0" Content="Upload Audio 1" Click="Load1_Button" />
+            <Button Grid.Row="1" Content="Upload Audio 2" Click="Load2_Button" />
+            <Button Grid.Row="2" Content="Compare" Click="Action_Button" />
+        </Grid>
+        <Border Name="BlakWait" BorderBrush="Black" BorderThickness="1" Background="#80000000" Visibility="Collapsed" Grid.RowSpan="3" Grid.ColumnSpan="4" >
+            <Grid>
+                <TextBlock Margin="0" TextWrapping="Wrap" Text="Please Wait..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24" FontWeight="Bold" Foreground="#7EFFFFFF"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
