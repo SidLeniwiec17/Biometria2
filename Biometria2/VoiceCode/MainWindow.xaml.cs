@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -42,6 +43,10 @@ namespace VoiceCode
             {
                 BlakWait.Visibility = Visibility.Visible;
                 await LoadAudio1(dialog.FileName);
+                if(voice1.VoiceBitmap != null)
+                {
+                    wave1.Source = ToBitmapSource(voice1.VoiceBitmap);
+                }
                 BlakWait.Visibility = Visibility.Collapsed;
             }
         }
@@ -57,6 +62,10 @@ namespace VoiceCode
             {
                 BlakWait.Visibility = Visibility.Visible;
                 await LoadAudio2(dialog.FileName);
+                if (voice2.VoiceBitmap != null)
+                {
+                    wave2.Source = ToBitmapSource(voice2.VoiceBitmap);
+                }
                 BlakWait.Visibility = Visibility.Collapsed;
             }
         }
@@ -85,6 +94,8 @@ namespace VoiceCode
                 {
                     voice1.Left = tempLeft != null ? tempLeft : null;
                     voice1.Right = tempRight != null ? tempRight : null;
+                    voice1.BoostSound();
+                    voice1.CreateBitmap();                    
                 }
                 else
                 {
@@ -103,6 +114,8 @@ namespace VoiceCode
                 {
                     voice2.Left = tempLeft != null ? tempLeft : null;
                     voice2.Right = tempRight != null ? tempRight : null;
+                    voice2.BoostSound();
+                    voice2.CreateBitmap();
                 }
                 else
                 {
@@ -111,11 +124,26 @@ namespace VoiceCode
             });
         }
 
+        public System.Windows.Media.ImageSource ToBitmapSource(Bitmap p_bitmap)
+        {
+            IntPtr hBitmap = p_bitmap.GetHbitmap();
+            System.Windows.Media.ImageSource wpfBitmap;
+            try
+            {
+                wpfBitmap = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(hBitmap, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+            }
+            finally
+            {
+                //p_bitmap.Dispose();
+            }
+            return wpfBitmap;
+        }
+
         private async Task Compare()
         {
             await Task.Run(() =>
             {
-
+                Console.WriteLine("Compare");
             });
         }
     }
