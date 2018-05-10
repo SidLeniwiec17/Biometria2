@@ -24,12 +24,15 @@ namespace VoiceCode
     {
         public Voice voice1;
         public Voice voice2;
+        public double answer;
+        public bool compared;
 
         public MainWindow()
         {
             InitializeComponent();
             voice1 = new Voice();
             voice2 = new Voice();
+            compared = false;
         }
 
         private async void Load1_Button(object sender, RoutedEventArgs e)
@@ -47,6 +50,8 @@ namespace VoiceCode
                 {
                     wave1.Source = ToBitmapSource(voice1.VoiceBitmap);
                 }
+                compared = false;
+                AnswerLabel.Content = "";
                 BlakWait.Visibility = Visibility.Collapsed;
             }
         }
@@ -66,6 +71,8 @@ namespace VoiceCode
                 {
                     wave2.Source = ToBitmapSource(voice2.VoiceBitmap);
                 }
+                compared = false;
+                AnswerLabel.Content = "";
                 BlakWait.Visibility = Visibility.Collapsed;
             }
         }
@@ -76,6 +83,8 @@ namespace VoiceCode
             {
                 BlakWait.Visibility = Visibility.Visible;
                 await Compare();
+                compared = true;
+                AnswerLabel.Content = answer + " %";
                 BlakWait.Visibility = Visibility.Collapsed;
             }
             else
@@ -144,6 +153,7 @@ namespace VoiceCode
             await Task.Run(() =>
             {
                 Console.WriteLine("Compare");
+                answer = Helper.Compare(voice1, voice2);
             });
         }
     }

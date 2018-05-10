@@ -106,5 +106,12 @@ namespace VoiceCode
             }
             return false;
         }
+
+        public static double Compare(Voice voice1, Voice voice2)
+        {
+            double answer = 0.0;
+
+            return answer;
+        }
     }
 }
