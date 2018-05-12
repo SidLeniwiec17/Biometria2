@@ -135,6 +135,7 @@ namespace VoiceCode
                 globalCost[i] = new float[voiceInRows.Length];
             }
 
+
             for (int x = 1; x < globalCost.Length; x++)
             {
                 for (int y = 1; y < globalCost[x].Length; y++)
@@ -178,12 +179,14 @@ namespace VoiceCode
             answer = (double)(((double)goodCost * 100.0) / ((double)maxPossibleCost));
 
             Console.WriteLine("Answer calculated.");
-            return Math.Round(answer,2);
+            return Math.Round(answer, 2);
         }
 
         public static float GetGlobalCost(int x, int y, float[][] localCost, float[][] globalCost)
         {
             float cost = 0.0f;
+            // try
+            //{
             if (x == 1)
             {
                 for (int i = 0; i < localCost[x].Length; i++)
@@ -200,8 +203,13 @@ namespace VoiceCode
             }
             else
             {
-                cost = Math.Min(globalCost[x - 1][y - 1], Math.Min(globalCost[x - 1][y], globalCost[x][x - 1])) + localCost[x][y];
+                cost = Math.Min(globalCost[x - 1][y - 1], Math.Min(globalCost[x - 1][y], globalCost[x][y - 1])) + localCost[x][y];
             }
+            //    }
+            /* catch(Exception ex)
+             {
+                 Console.WriteLine("Ups...");
+             }*/
             return cost;
         }
     }

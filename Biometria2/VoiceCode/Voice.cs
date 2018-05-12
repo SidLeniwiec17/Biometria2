@@ -80,12 +80,24 @@ namespace VoiceCode
             float[] original = GetFloatedSound();
             MinVal = original.Min();
             MaxVal = original.Max();
-            float[] originalNoEnd = CutOffEnd(original);
-            float[] originalCutted = CutOffBeggining(originalNoEnd);
             float[] simplyfied = new float[simplyfieSize];
-            simplyfied = GetNewLine(originalCutted, simplyfieSize);
+            int pointsToSimplyfy = original.Length / simplyfieSize;
 
-            Simplyfied = simplyfied;
+            int counter = 0;
+            for (int i = 0; i < simplyfieSize; i++)
+            {
+                float sum = 0.0f;
+                for (int y = 0; y < pointsToSimplyfy; y++)
+                {
+                    sum += original[counter + y];
+                }
+                counter += pointsToSimplyfy;
+                simplyfied[i] = sum / pointsToSimplyfy;
+            }
+            float[] originalNoEnd = CutOffEnd(simplyfied);
+            float[] originalCutted = CutOffBeggining(originalNoEnd);
+            Simplyfied = originalCutted;
+
             MinVal = Simplyfied.Min();
             MaxVal = Simplyfied.Max();
         }
@@ -189,14 +201,14 @@ namespace VoiceCode
             return bmp;
         }
 
-        public static float[] GetNewLine(float[] oldLine, int newSize)
+        /*public static float[] GetNewLine(float[] oldLine, int newSize)
         {
             float[] newLine = new float[newSize];
 
             for (int i = 0; i < newLine.Length; i++)
             {
-                float percentPosition = (float)i / (float)newLine.Length;
-                int middlePos = (int)(percentPosition * (float)oldLine.Length);
+                double percentPosition = (double)i / (double)newLine.Length;
+                int middlePos = (int)(percentPosition * (double)oldLine.Length);
                 int rightPos = middlePos + 1;
                 int leftPos = middlePos - 1;
                 if (rightPos >= oldLine.Length)
@@ -214,7 +226,7 @@ namespace VoiceCode
 
                 float[] factors = GetParabolaFactors(leftPos, oldLine[leftPos], middlePos, oldLine[middlePos], rightPos, oldLine[rightPos]);
 
-                float newVal = (float)GetInterpolatedValue(factors, percentPosition * (float)oldLine.Length);
+                float newVal = (float)GetInterpolatedValue(factors, percentPosition * (double)oldLine.Length);
                 newLine[i] = newVal;
             }
             return newLine;
@@ -232,10 +244,10 @@ namespace VoiceCode
             return factors;
         }
 
-        public static float GetInterpolatedValue(float[] factors, float x)
+        public static double GetInterpolatedValue(float[] factors, double x)
         {
-            float val = (factors[0] * (x * x)) + (factors[1] * x) + factors[2];
+            double val = (factors[0] * (x * x)) + (factors[1] * x) + factors[2];
             return val;
-        }
+        }*/
     }
 }
