@@ -5,31 +5,55 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VoiceCode"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="825">
+        Title="MainWindow" Height="550" Width="875">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="4*"/>
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
         <Grid Grid.Column="0">
             <Grid.RowDefinitions>
                 <RowDefinition/>
                 <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
             </Grid.RowDefinitions>
-            <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <Image  Grid.Row="0" Name="wave1"
-               Margin="5,5,5,5"
+            <GroupBox Grid.Row="0" Header="Voice 1 - Original" HorizontalAlignment="Stretch" Margin="1,1,1,1" VerticalAlignment="Stretch" >
+                <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <Image  Grid.Row="0" Name="wave1"
+               Margin="4,4,4,4"
                Stretch="None"
                SnapsToDevicePixels="True"
                RenderOptions.BitmapScalingMode="HighQuality"/>
-            </ScrollViewer>
-            <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <Image  Grid.Row="0" Name="wave2"
-               Margin="5,5,5,5"
+                </ScrollViewer>
+            </GroupBox>
+            <GroupBox Grid.Row="1" Header="Voice 1 - Simple" HorizontalAlignment="Stretch" Margin="1,1,1,1" VerticalAlignment="Stretch" >
+                <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <Image  Grid.Row="1" Name="wave1simple"
+               Margin="4,4,4,4"
                Stretch="None"
                SnapsToDevicePixels="True"
                RenderOptions.BitmapScalingMode="HighQuality"/>
-            </ScrollViewer>
+                </ScrollViewer>
+            </GroupBox>
+            <GroupBox Grid.Row="2" Header="Voice 2 - Original" HorizontalAlignment="Stretch" Margin="1,1,1,1" VerticalAlignment="Stretch" >
+                <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <Image  Grid.Row="2" Name="wave2"
+               Margin="4,4,4,4"
+               Stretch="None"
+               SnapsToDevicePixels="True"
+               RenderOptions.BitmapScalingMode="HighQuality"/>
+                </ScrollViewer>
+            </GroupBox>
+            <GroupBox Grid.Row="3" Header="Voice 2 - Simple" HorizontalAlignment="Stretch" Margin="1,1,1,1" VerticalAlignment="Stretch" >
+                <ScrollViewer Grid.Row="3" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <Image  Grid.Row="3" Name="wave2simple"
+               Margin="4,4,4,4"
+               Stretch="None"
+               SnapsToDevicePixels="True"
+               RenderOptions.BitmapScalingMode="HighQuality"/>
+                </ScrollViewer>
+            </GroupBox>
         </Grid>
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
@@ -50,7 +74,7 @@
                 <Label Grid.Column="1" x:Name="AnswerLabel" Content="" HorizontalAlignment="Left" Margin="5,5,5,5" VerticalAlignment="Center" FontSize="15"/>
             </Grid>
         </Grid>
-        
+
         <Border Name="BlakWait" BorderBrush="Black" BorderThickness="1" Background="#80000000" Visibility="Collapsed" Grid.RowSpan="3" Grid.ColumnSpan="4" >
             <Grid>
                 <TextBlock Margin="0" TextWrapping="Wrap" Text="Please Wait..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24" FontWeight="Bold" Foreground="#7EFFFFFF"/>

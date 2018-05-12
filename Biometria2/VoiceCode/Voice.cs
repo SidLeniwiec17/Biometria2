@@ -13,7 +13,9 @@ namespace VoiceCode
     {
         public float[] Left { get; set; }
         public float[] Right { get; set; }
+        public float[] Simplyfied { get; set; }
         public Bitmap VoiceBitmap { get; set; }
+        public Bitmap SimpleVoiceBitmap { get; set; }
 
         public Voice()
         {
@@ -70,14 +72,42 @@ namespace VoiceCode
             }
         }
 
+        public void Simplyfy()
+        {
+            int simplyfieSize = 6000;
+            float[] original = GetFloatedSound();
+            int pointsToSimplyfy = original.Length / simplyfieSize;
+            float[] simplyfied = new float[simplyfieSize];
+
+            int counter = 0;
+            for (int i = 0; i < simplyfieSize; i++)
+            {
+                float sum = 0.0f;
+                for(int y = 0; y < pointsToSimplyfy; y++)
+                {
+                    sum += original[counter + y];
+                }
+                counter += pointsToSimplyfy;
+                simplyfied[i] = sum / pointsToSimplyfy;
+            }
+            Simplyfied = simplyfied;
+        }
+
         public void CreateBitmap()
         {
             var data = this.GetFloatedSound();
             var height = (int)(data.Max() + (-data.Min()));
-            drawGraph(data, (int)(0.15f * (float)data.Length), (int)(1.4f * (float)height), Color.Blue, Color.White);
+            VoiceBitmap = drawGraph(data, (int)(0.15f * (float)data.Length), (int)(1.4f * (float)height), Color.Blue, Color.White);
         }
 
-        public void drawGraph(float[] data, int width, int height, Color ForeColor, Color BackColor)
+        public void CreateSimplyBitmap()
+        {
+            var data = this.Simplyfied;
+            var height = (int)(data.Max() + (-data.Min()));
+            SimpleVoiceBitmap = drawGraph(data, (int)(0.15f * (float)data.Length), (int)(1.4f * (float)height), Color.Blue, Color.White);
+        }
+
+        public Bitmap drawGraph(float[] data, int width, int height, Color ForeColor, Color BackColor)
         {
             Bitmap bmp = new System.Drawing.Bitmap(width, height,
                                     PixelFormat.Format32bppArgb);
@@ -115,7 +145,7 @@ namespace VoiceCode
 
                 g.ResetTransform();                
             }
-            VoiceBitmap = bmp;
+            return bmp;
         }               
     }
 }

@@ -49,6 +49,7 @@ namespace VoiceCode
                 if(voice1.VoiceBitmap != null)
                 {
                     wave1.Source = ToBitmapSource(voice1.VoiceBitmap);
+                    wave1simple.Source = ToBitmapSource(voice1.SimpleVoiceBitmap);
                 }
                 compared = false;
                 AnswerLabel.Content = "";
@@ -70,6 +71,7 @@ namespace VoiceCode
                 if (voice2.VoiceBitmap != null)
                 {
                     wave2.Source = ToBitmapSource(voice2.VoiceBitmap);
+                    wave2simple.Source = ToBitmapSource(voice2.SimpleVoiceBitmap);
                 }
                 compared = false;
                 AnswerLabel.Content = "";
@@ -104,7 +106,9 @@ namespace VoiceCode
                     voice1.Left = tempLeft != null ? tempLeft : null;
                     voice1.Right = tempRight != null ? tempRight : null;
                     voice1.BoostSound();
-                    voice1.CreateBitmap();                    
+                    voice1.CreateBitmap();
+                    voice1.Simplyfy();
+                    voice1.CreateSimplyBitmap();
                 }
                 else
                 {
@@ -125,6 +129,8 @@ namespace VoiceCode
                     voice2.Right = tempRight != null ? tempRight : null;
                     voice2.BoostSound();
                     voice2.CreateBitmap();
+                    voice2.Simplyfy();
+                    voice2.CreateSimplyBitmap();
                 }
                 else
                 {
