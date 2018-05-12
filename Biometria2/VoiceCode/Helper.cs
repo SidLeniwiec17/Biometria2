@@ -110,8 +110,99 @@ namespace VoiceCode
         public static double Compare(Voice voice1, Voice voice2)
         {
             double answer = 0.0;
+            float[] voiceInColumns = voice1.Simplyfied;
+            float[] voiceInRows = voice2.Simplyfied;
 
-            return answer;
+            float[][] localCost = new float[voiceInColumns.Length][];
+            for (int i = 0; i < localCost.Length; i++)
+            {
+                localCost[i] = new float[voiceInRows.Length];
+            }
+
+            for (int x = 0; x < localCost.Length; x++)
+            {
+                for (int y = 0; y < localCost[x].Length; y++)
+                {
+                    localCost[x][y] = (float)(Math.Abs(voiceInColumns[x] - voiceInRows[y]));
+                }
+            }
+            Console.WriteLine("Local cost matrix prepared.");
+
+
+            float[][] globalCost = new float[voiceInColumns.Length][];
+            for (int i = 0; i < globalCost.Length; i++)
+            {
+                globalCost[i] = new float[voiceInRows.Length];
+            }
+
+            for (int x = 1; x < globalCost.Length; x++)
+            {
+                for (int y = 1; y < globalCost[x].Length; y++)
+                {
+                    globalCost[x][y] = GetGlobalCost(x, y, localCost, globalCost);
+                }
+            }
+
+            Console.WriteLine("Global cost matrix prepared.");
+
+            float bestPathCost = 0.0f;
+
+
+            int x2 = globalCost.Length - 1;
+            int y2 = globalCost[x2].Length - 1;
+
+            while (x2 > 0 && y2 > 0)
+            {
+                bestPathCost += globalCost[x2][y2];
+                //w lewo
+                if (globalCost[x2 - 1][y2] <= globalCost[x2 - 1][y2 - 1] && globalCost[x2 - 1][y2] <= globalCost[x2][y2 - 1])
+                {
+                    x2 = x2 - 1;
+                }
+                //w skos
+                else if (globalCost[x2 - 1][y2 - 1] <= globalCost[x2][y2 - 1] && globalCost[x2 - 1][y2 - 1] <= globalCost[x2 - 1][y2])
+                {
+                    x2 = x2 - 1;
+                    y2 = y2 - 1;
+                }
+                //w dół
+                else if (globalCost[x2][y2 - 1] <= globalCost[x2 - 1][y2 - 1] && globalCost[x2][y2 - 1] <= globalCost[x2 - 1][y2])
+                {
+                    y2 = y2 - 1;
+                }
+            }
+
+            Console.WriteLine("Best Path calculated.");
+            float maxPossibleCost = globalCost.Length * (Math.Max(voice1.MaxVal, voice2.MaxVal) - Math.Min(voice2.MinVal, voice1.MinVal));
+            float goodCost = maxPossibleCost - bestPathCost;
+            answer = (double)(((double)goodCost * 100.0) / ((double)maxPossibleCost));
+
+            Console.WriteLine("Answer calculated.");
+            return Math.Round(answer,2);
+        }
+
+        public static float GetGlobalCost(int x, int y, float[][] localCost, float[][] globalCost)
+        {
+            float cost = 0.0f;
+            if (x == 1)
+            {
+                for (int i = 0; i < localCost[x].Length; i++)
+                {
+                    cost += localCost[x][i];
+                }
+            }
+            else if (y == 1)
+            {
+                for (int i = 0; i < localCost.Length; i++)
+                {
+                    cost += localCost[i][y];
+                }
+            }
+            else
+            {
+                cost = Math.Min(globalCost[x - 1][y - 1], Math.Min(globalCost[x - 1][y], globalCost[x][x - 1])) + localCost[x][y];
+            }
+            return cost;
         }
     }
 }

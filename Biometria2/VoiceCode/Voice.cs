@@ -16,6 +16,8 @@ namespace VoiceCode
         public float[] Simplyfied { get; set; }
         public Bitmap VoiceBitmap { get; set; }
         public Bitmap SimpleVoiceBitmap { get; set; }
+        public float MaxVal { get; set; }
+        public float MinVal { get; set; }
 
         public Voice()
         {
@@ -74,23 +76,62 @@ namespace VoiceCode
 
         public void Simplyfy()
         {
-            int simplyfieSize = 6000;
+            int simplyfieSize = 10000;
             float[] original = GetFloatedSound();
-            int pointsToSimplyfy = original.Length / simplyfieSize;
+            MinVal = original.Min();
+            MaxVal = original.Max();
+            float[] originalNoEnd = CutOffEnd(original);
+            float[] originalCutted = CutOffBeggining(originalNoEnd);
             float[] simplyfied = new float[simplyfieSize];
+            simplyfied = GetNewLine(originalCutted, simplyfieSize);
 
-            int counter = 0;
-            for (int i = 0; i < simplyfieSize; i++)
-            {
-                float sum = 0.0f;
-                for(int y = 0; y < pointsToSimplyfy; y++)
-                {
-                    sum += original[counter + y];
-                }
-                counter += pointsToSimplyfy;
-                simplyfied[i] = sum / pointsToSimplyfy;
-            }
             Simplyfied = simplyfied;
+            MinVal = Simplyfied.Min();
+            MaxVal = Simplyfied.Max();
+        }
+
+        public float[] CutOffEnd(float[] original)
+        {
+            int index = original.Length;
+            float diff = MaxVal - MinVal;
+            float jump = 0.02f * diff;
+            for (int x = original.Length - 1; x > 1; x--)
+            {
+                if (Math.Abs(original[x]) > jump)
+                {
+                    index = x;
+                    break;
+                }
+            }
+
+            float[] newOriginal = new float[index];
+            for (int x = 0; x < newOriginal.Length; x++)
+            {
+                newOriginal[x] = original[x];
+            }
+            return newOriginal;
+        }
+
+        public float[] CutOffBeggining(float[] original)
+        {
+            int index = 0;
+            float diff = MaxVal - MinVal;
+            float jump = 0.02f * diff;
+            for (int x = 0; x < original.Length; x++)
+            {
+                if (Math.Abs(original[x]) > jump)
+                {
+                    index = x;
+                    break;
+                }
+            }
+
+            float[] newOriginal = new float[original.Length - index];
+            for (int x = 0; x < newOriginal.Length; x++)
+            {
+                newOriginal[x] = original[index + x];
+            }
+            return newOriginal;
         }
 
         public void CreateBitmap()
@@ -134,7 +175,7 @@ namespace VoiceCode
                 float yScale = 1f * plotArea.Height / dataHeight;
                 float xScale = 1f * plotArea.Width / data.Length;
 
-               
+
                 g.ScaleTransform(xScale, yScale);
                 g.TranslateTransform(0, dataHeight / 2);
 
@@ -143,9 +184,58 @@ namespace VoiceCode
 
                 g.DrawLines(pen, points.ToArray());
 
-                g.ResetTransform();                
+                g.ResetTransform();
             }
             return bmp;
-        }               
+        }
+
+        public static float[] GetNewLine(float[] oldLine, int newSize)
+        {
+            float[] newLine = new float[newSize];
+
+            for (int i = 0; i < newLine.Length; i++)
+            {
+                float percentPosition = (float)i / (float)newLine.Length;
+                int middlePos = (int)(percentPosition * (float)oldLine.Length);
+                int rightPos = middlePos + 1;
+                int leftPos = middlePos - 1;
+                if (rightPos >= oldLine.Length)
+                {
+                    leftPos = oldLine.Length - 3;
+                    rightPos = oldLine.Length - 1;
+                    middlePos = oldLine.Length - 2;
+                }
+                if (leftPos < 0)
+                {
+                    leftPos = 0;
+                    rightPos = 2;
+                    middlePos = 1;
+                }
+
+                float[] factors = GetParabolaFactors(leftPos, oldLine[leftPos], middlePos, oldLine[middlePos], rightPos, oldLine[rightPos]);
+
+                float newVal = (float)GetInterpolatedValue(factors, percentPosition * (float)oldLine.Length);
+                newLine[i] = newVal;
+            }
+            return newLine;
+        }
+
+        public static float[] GetParabolaFactors(float x1, float y1, float x2, float y2, float x3, float y3)
+        {
+            float[] factors = new float[3];
+
+            var denom = (x1 - x2) * (x1 - x3) * (x2 - x3);
+            factors[0] = (x3 * (y2 - y1) + x2 * (y1 - y3) + x1 * (y3 - y2)) / denom;
+            factors[1] = (x3 * x3 * (y1 - y2) + x2 * x2 * (y3 - y1) + x1 * x1 * (y2 - y3)) / denom;
+            factors[2] = (x2 * x3 * (x2 - x3) * y1 + x3 * x1 * (x3 - x1) * y2 + x1 * x2 * (x1 - x2) * y3) / denom;
+
+            return factors;
+        }
+
+        public static float GetInterpolatedValue(float[] factors, float x)
+        {
+            float val = (factors[0] * (x * x)) + (factors[1] * x) + factors[2];
+            return val;
+        }
     }
 }
