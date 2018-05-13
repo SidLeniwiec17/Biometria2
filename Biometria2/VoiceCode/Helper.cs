@@ -107,11 +107,21 @@ namespace VoiceCode
             return false;
         }
 
-        public static double Compare(Voice voice1, Voice voice2)
+        public static float[] Reverse(float[] voice)
+        {
+            float[] reverted = new float[voice.Length];
+            for(int i = 0; i < voice.Length; i++)
+            {
+                reverted[i] = voice[voice.Length - i -1];
+            }
+            return reverted;
+        }
+
+        public static Tuple<double, float[][]> Compare(Voice voice1, Voice voice2)
         {
             double answer = 0.0;
             float[] voiceInColumns = voice1.Simplyfied;
-            float[] voiceInRows = voice2.Simplyfied;
+            float[] voiceInRows = Reverse(voice2.Simplyfied);
 
             float[][] localCost = new float[voiceInColumns.Length][];
             for (int i = 0; i < localCost.Length; i++)
@@ -178,8 +188,9 @@ namespace VoiceCode
             float goodCost = maxPossibleCost - bestPathCost;
             answer = (double)(((double)goodCost * 100.0) / ((double)maxPossibleCost));
 
-            Console.WriteLine("Answer calculated.");
-            return Math.Round(answer, 2);
+            Console.WriteLine("Answer calculated.");            
+
+            return new Tuple<double, float[][]>(Math.Round(answer, 2), localCost);
         }
 
         public static float GetGlobalCost(int x, int y, float[][] localCost, float[][] globalCost)

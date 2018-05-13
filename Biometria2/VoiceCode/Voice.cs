@@ -80,23 +80,32 @@ namespace VoiceCode
             float[] original = GetFloatedSound();
             MinVal = original.Min();
             MaxVal = original.Max();
-            float[] simplyfied = new float[simplyfieSize];
-            int pointsToSimplyfy = original.Length / simplyfieSize;
-
-            int counter = 0;
-            for (int i = 0; i < simplyfieSize; i++)
+            if (original.Length > simplyfieSize)
             {
-                float sum = 0.0f;
-                for (int y = 0; y < pointsToSimplyfy; y++)
+
+
+                float[] simplyfied = new float[simplyfieSize];
+                int pointsToSimplyfy = original.Length / simplyfieSize;
+
+                int counter = 0;
+                for (int i = 0; i < simplyfieSize; i++)
                 {
-                    sum += original[counter + y];
+                    float sum = 0.0f;
+                    for (int y = 0; y < pointsToSimplyfy; y++)
+                    {
+                        sum += original[counter + y];
+                    }
+                    counter += pointsToSimplyfy;
+                    simplyfied[i] = sum / pointsToSimplyfy;
                 }
-                counter += pointsToSimplyfy;
-                simplyfied[i] = sum / pointsToSimplyfy;
+                float[] originalNoEnd = CutOffEnd(simplyfied);
+                float[] originalCutted = CutOffBeggining(originalNoEnd);
+                Simplyfied = originalCutted;
             }
-            float[] originalNoEnd = CutOffEnd(simplyfied);
-            float[] originalCutted = CutOffBeggining(originalNoEnd);
-            Simplyfied = originalCutted;
+            else
+            {
+                Simplyfied = original;
+            }
 
             MinVal = Simplyfied.Min();
             MaxVal = Simplyfied.Max();

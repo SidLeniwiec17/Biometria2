@@ -26,6 +26,7 @@ namespace VoiceCode
         public Voice voice2;
         public double answer;
         public bool compared;
+        public float[][] localCost;
 
         public MainWindow()
         {
@@ -88,6 +89,8 @@ namespace VoiceCode
                 compared = true;
                 AnswerLabel.Content = answer + " %";
                 BlakWait.Visibility = Visibility.Collapsed;
+                CostMatrix localCostMatrix = new CostMatrix(localCost);
+                localCostMatrix.Show();
             }
             else
             {
@@ -159,7 +162,9 @@ namespace VoiceCode
             await Task.Run(() =>
             {
                 Console.WriteLine("Compare");
-                answer = Helper.Compare(voice1, voice2);
+                var answ = Helper.Compare(voice1, voice2);
+                answer = answ.Item1;
+                localCost = answ.Item2;
             });
         }
     }
