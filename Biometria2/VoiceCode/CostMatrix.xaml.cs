@@ -23,11 +23,12 @@ namespace VoiceCode
     {
         float[][] LocalCost;
 
-        public CostMatrix(float[][] localCost)
+        public CostMatrix(float[][] localCost, string title)
         {
             InitializeComponent();
             LocalCost = localCost;
             DrawBitmap();
+            this.Title = title;
         }
 
         public void DrawBitmap()

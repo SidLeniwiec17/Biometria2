@@ -117,7 +117,7 @@ namespace VoiceCode
             return reverted;
         }
 
-        public static Tuple<double, float[][]> Compare(Voice voice1, Voice voice2)
+        public static Tuple<double, float[][], float[][]> Compare(Voice voice1, Voice voice2)
         {
             double answer = 0.0;
             float[] voiceInColumns = voice1.Simplyfied;
@@ -190,7 +190,7 @@ namespace VoiceCode
 
             Console.WriteLine("Answer calculated.");            
 
-            return new Tuple<double, float[][]>(Math.Round(answer, 2), localCost);
+            return new Tuple<double, float[][], float[][]>(Math.Round(answer, 2), localCost, globalCost);
         }
 
         public static float GetGlobalCost(int x, int y, float[][] localCost, float[][] globalCost)
