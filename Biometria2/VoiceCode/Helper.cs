@@ -123,6 +123,9 @@ namespace VoiceCode
             float[] voiceInColumns = voice1.Simplyfied;
             float[] voiceInRows = Reverse(voice2.Simplyfied);
 
+            //BigMatrixWrapper wrapper = new BigMatrixWrapper();
+           // wrapper.InitializeFile(voiceInColumns.Length, voiceInRows.Length);
+
             float[][] localCost = new float[voiceInColumns.Length][];
             for (int i = 0; i < localCost.Length; i++)
             {
@@ -200,14 +203,14 @@ namespace VoiceCode
             //{
             if (x == 1)
             {
-                for (int i = 0; i < localCost[x].Length; i++)
+                for (int i = 1; i < localCost[x].Length; i++)
                 {
                     cost += localCost[x][i];
                 }
             }
             else if (y == 1)
             {
-                for (int i = 0; i < localCost.Length; i++)
+                for (int i = 1; i < localCost.Length; i++)
                 {
                     cost += localCost[i][y];
                 }

@@ -61,11 +61,12 @@
                 <RowDefinition/>
                 <RowDefinition/>
                 <RowDefinition/>
+                <RowDefinition/>
             </Grid.RowDefinitions>
-            <Button Grid.Row="0" Content="Upload Audio 1" Click="Load1_Button" />
-            <Button Grid.Row="1" Content="Upload Audio 2" Click="Load2_Button" />
-            <Button Grid.Row="2" Content="Compare" Click="Action_Button" />
-            <Grid Grid.Row="3">
+            <Button Grid.Row="0" Content="Upload Audio 1" Click="Load1_Button" Margin="5,5,5,5"/>
+            <Button Grid.Row="1" Content="Upload Audio 2" Click="Load2_Button" Margin="5,5,5,5"/>
+            <Button Grid.Row="3" Content="Compare" Click="Action_Button" Margin="5,5,5,5"/>
+            <Grid Grid.Row="4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
                     <ColumnDefinition />
@@ -73,6 +74,7 @@
                 <Label Grid.Column="0" x:Name="label" Content="Similarity: " HorizontalAlignment="Right" Margin="5,5,5,5" VerticalAlignment="Center" FontSize="15"/>
                 <Label Grid.Column="1" x:Name="AnswerLabel" Content="" HorizontalAlignment="Left" Margin="5,5,5,5" VerticalAlignment="Center" FontSize="15"/>
             </Grid>
+            <CheckBox x:Name="OptionalCheckBox" Content="Show cost graphs" HorizontalAlignment="Center" Margin="5,5,5,5" Grid.Row="2" VerticalAlignment="Center" FontSize="15"/>
         </Grid>
 
         <Border Name="BlakWait" BorderBrush="Black" BorderThickness="1" Background="#80000000" Visibility="Collapsed" Grid.RowSpan="3" Grid.ColumnSpan="4" >

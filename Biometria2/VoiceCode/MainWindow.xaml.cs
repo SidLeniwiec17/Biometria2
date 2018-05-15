@@ -28,6 +28,8 @@ namespace VoiceCode
         public bool compared;
         public float[][] localCost;
         public float[][] globalCost;
+        //BigMatrixWrapper wrapper;
+
 
         public MainWindow()
         {
@@ -35,6 +37,8 @@ namespace VoiceCode
             voice1 = new Voice();
             voice2 = new Voice();
             compared = false;
+           // wrapper = new BigMatrixWrapper();
+            //wrapper.CreateFile();
         }
 
         private async void Load1_Button(object sender, RoutedEventArgs e)
@@ -90,10 +94,13 @@ namespace VoiceCode
                 compared = true;
                 AnswerLabel.Content = answer + " %";
                 BlakWait.Visibility = Visibility.Collapsed;
-                CostMatrix localCostMatrix = new CostMatrix(localCost, "localCost");
-                CostMatrix globalCostMatrix = new CostMatrix(globalCost, "globalCost");
-                localCostMatrix.Show();
-                globalCostMatrix.Show();
+                if (OptionalCheckBox.IsChecked == true)
+                {
+                    CostMatrix localCostMatrix = new CostMatrix(localCost, "localCost");
+                    CostMatrix globalCostMatrix = new CostMatrix(globalCost, "globalCost");
+                    localCostMatrix.Show();
+                    globalCostMatrix.Show();
+                }
             }
             else
             {
