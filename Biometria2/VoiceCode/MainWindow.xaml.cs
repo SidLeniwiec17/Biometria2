@@ -173,7 +173,9 @@ namespace VoiceCode
         {
             await Task.Run(() =>
             {
-                Console.WriteLine("Compare");
+                Console.WriteLine("Compare"); 
+                System.GC.Collect();
+
                 var answ = Helper.Compare(voice1, voice2);
                 answer = answ.Item1;
                 localCost = answ.Item2;
