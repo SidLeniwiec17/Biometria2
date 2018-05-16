@@ -120,11 +120,16 @@ namespace VoiceCode
         public static Tuple<double, float[][], float[][]> Compare(Voice voice1, Voice voice2)
         {
             double answer = 0.0;
-            float[] voiceInColumns = voice1.Simplyfied;
-            float[] voiceInRows = Reverse(voice2.Simplyfied);
+            //float[] test1 = new float[] {0.0f, 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f , 0.0f , 0.0f, 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f , 0.0f, 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f , 0.0f, 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 0.0f, 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 0.0f, 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f };
+            //float[] test2 = new float[] { 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f , 1.0f, 2.0f, 3.0f, 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 1.0f, 2.0f, 3.0f , 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 1.0f, 2.0f, 3.0f , 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 1.0f, 2.0f, 3.0f, 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 1.0f, 2.0f, 3.0f, 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 1.0f, 2.0f, 3.0f };
+            //float[] voiceInColumns = test1;
+            //float[] voiceInRows = Reverse(test2);
 
+            float[] voiceInColumns = voice1.Simplyfied;
+            float[] voiceInRows = voice2.Simplyfied;
+            
             //BigMatrixWrapper wrapper = new BigMatrixWrapper();
-           // wrapper.InitializeFile(voiceInColumns.Length, voiceInRows.Length);
+            // wrapper.InitializeFile(voiceInColumns.Length, voiceInRows.Length);
 
             float[][] localCost = new float[voiceInColumns.Length][];
             for (int i = 0; i < localCost.Length; i++)
@@ -153,6 +158,10 @@ namespace VoiceCode
             {
                 for (int y = 1; y < globalCost[x].Length; y++)
                 {
+                    if(y == 2 && x == 2)
+                    {
+                        Console.WriteLine("test");
+                    }
                     globalCost[x][y] = GetGlobalCost(x, y, localCost, globalCost);
                 }
             }
@@ -160,6 +169,7 @@ namespace VoiceCode
             Console.WriteLine("Global cost matrix prepared.");
 
             float bestPathCost = 0.0f;
+            float worstPathCost = 0.0f;
 
 
             int x2 = globalCost.Length - 1;
@@ -186,11 +196,46 @@ namespace VoiceCode
                 }
             }
 
-            Console.WriteLine("Best Path calculated.");
-            float maxPossibleCost = globalCost.Length * (Math.Max(voice1.MaxVal, voice2.MaxVal) - Math.Min(voice2.MinVal, voice1.MinVal));
-            float goodCost = maxPossibleCost - bestPathCost;
-            answer = (double)(((double)goodCost * 100.0) / ((double)maxPossibleCost));
+            x2 = globalCost.Length - 1;
+            y2 = globalCost[x2].Length - 1;
 
+            while (x2 > 0 && y2 > 0)
+            {
+                worstPathCost += globalCost[x2][y2];
+                //w lewo
+                if (globalCost[x2 - 1][y2] >= globalCost[x2 - 1][y2 - 1] && globalCost[x2 - 1][y2] >= globalCost[x2][y2 - 1])
+                {
+                    x2 = x2 - 1;
+                }
+                //w skos
+                else if (globalCost[x2 - 1][y2 - 1] >= globalCost[x2][y2 - 1] && globalCost[x2 - 1][y2 - 1] >= globalCost[x2 - 1][y2])
+                {
+                    x2 = x2 - 1;
+                    y2 = y2 - 1;
+                }
+                //w dół
+                else if (globalCost[x2][y2 - 1] >= globalCost[x2 - 1][y2 - 1] && globalCost[x2][y2 - 1] >= globalCost[x2 - 1][y2])
+                {
+                    y2 = y2 - 1;
+                }
+            }
+
+            Console.WriteLine("Best Path calculated.");
+            float maxPossibleCost = (globalCost.Length + globalCost[0].Length) * (Math.Max(voice1.MaxVal, voice2.MaxVal) - Math.Min(voice2.MinVal, voice1.MinVal));
+
+            /*var wrongPercentage = (double)bestPathCost / (double)maxPossibleCost;           
+            if (wrongPercentage > 1.0)
+            {
+                wrongPercentage = 1.0;
+            }
+            else if(wrongPercentage < 0)
+            {
+                wrongPercentage = 0.0;
+            }
+            answer = (double)(100.0 - (wrongPercentage * 100.0));*/
+
+
+            answer = (double)(((double)bestPathCost * 100.0) /worstPathCost);
             Console.WriteLine("Answer calculated.");            
 
             return new Tuple<double, float[][], float[][]>(Math.Round(answer, 2), localCost, globalCost);
@@ -201,14 +246,14 @@ namespace VoiceCode
             float cost = 0.0f;
             // try
             //{
-            if (x == 1)
+            if (x == 1 && y != 1)
             {
                 for (int i = 1; i < localCost[x].Length; i++)
                 {
                     cost += localCost[x][i];
                 }
             }
-            else if (y == 1)
+            else if (y == 1 && x != 1)
             {
                 for (int i = 1; i < localCost.Length; i++)
                 {
