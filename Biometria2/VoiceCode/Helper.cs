@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace VoiceCode
 {
-    public class Helper
+    public static class Helper
     {
         public static bool readWav(string filename, out float[] L, out float[] R)
         {
@@ -120,17 +120,10 @@ namespace VoiceCode
         public static Tuple<double, float[][], float[][]> Compare(Voice voice1, Voice voice2)
         {
             double answer = 0.0;
-            //float[] test1 = new float[] {0.0f, 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f , 0.0f , 0.0f, 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f , 0.0f, 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f , 0.0f, 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 0.0f, 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 0.0f, 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f };
-            //float[] test2 = new float[] { 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f , 1.0f, 2.0f, 3.0f, 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 1.0f, 2.0f, 3.0f , 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 1.0f, 2.0f, 3.0f , 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 1.0f, 2.0f, 3.0f, 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 1.0f, 2.0f, 3.0f, 1.0f, 2.0f, 3.0f, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 1.0f, 2.0f, 3.0f };
-            //float[] voiceInColumns = test1;
-            //float[] voiceInRows = Reverse(test2);
 
             float[] voiceInColumns = voice1.Simplyfied;
             float[] voiceInRows = voice2.Simplyfied;
             
-            //BigMatrixWrapper wrapper = new BigMatrixWrapper();
-            // wrapper.InitializeFile(voiceInColumns.Length, voiceInRows.Length);
-
             float[][] localCost = new float[voiceInColumns.Length][];
             for (int i = 0; i < localCost.Length; i++)
             {

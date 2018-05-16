@@ -76,7 +76,7 @@ namespace VoiceCode
 
         public void Simplyfy()
         {
-            int simplyfieSize = 10000;
+            int simplyfieSize = 8000;
             float[] original = GetFloatedSound();
             MinVal = original.Min();
             MaxVal = original.Max();
