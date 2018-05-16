@@ -235,7 +235,11 @@ namespace VoiceCode
             answer = (double)(100.0 - (wrongPercentage * 100.0));*/
 
 
-            answer = (double)(((double)bestPathCost * 100.0) /worstPathCost);
+            answer = 100.0 - (double)(((double)bestPathCost * 100.0) /worstPathCost);
+            if(bestPathCost > worstPathCost)
+            {
+                answer = 0.0;
+            }
             Console.WriteLine("Answer calculated.");            
 
             return new Tuple<double, float[][], float[][]>(Math.Round(answer, 2), localCost, globalCost);

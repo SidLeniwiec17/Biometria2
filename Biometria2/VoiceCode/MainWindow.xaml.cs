@@ -116,6 +116,7 @@ namespace VoiceCode
                 float[] tempRight = null;
                 if (Helper.readWav(fileName, out tempLeft, out tempRight))
                 {
+                    voice1 = new Voice();
                     voice1.Left = tempLeft != null ? tempLeft : null;
                     voice1.Right = tempRight != null ? tempRight : null;
                     voice1.BoostSound();
@@ -138,6 +139,7 @@ namespace VoiceCode
                 float[] tempRight = null;
                 if (Helper.readWav(fileName, out tempLeft, out tempRight))
                 {
+                    voice2 = new Voice();
                     voice2.Left = tempLeft != null ? tempLeft : null;
                     voice2.Right = tempRight != null ? tempRight : null;
                     voice2.BoostSound();
