@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IrisCode", "IrisCode\IrisCo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoiceCode", "VoiceCode\VoiceCode.csproj", "{07DF987E-A912-4263-BE3D-7D8C955CFE23}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaceCode", "FaceCode\FaceCode.csproj", "{6B619D65-F801-419B-9C0F-D98248BDB6CB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{07DF987E-A912-4263-BE3D-7D8C955CFE23}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{07DF987E-A912-4263-BE3D-7D8C955CFE23}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{07DF987E-A912-4263-BE3D-7D8C955CFE23}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B619D65-F801-419B-9C0F-D98248BDB6CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B619D65-F801-419B-9C0F-D98248BDB6CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B619D65-F801-419B-9C0F-D98248BDB6CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B619D65-F801-419B-9C0F-D98248BDB6CB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
