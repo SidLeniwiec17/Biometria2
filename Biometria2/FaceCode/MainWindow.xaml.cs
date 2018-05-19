@@ -22,6 +22,11 @@ namespace FaceCode
     /// </summary>
     public partial class MainWindow : Window
     {
+        bool pic1Loaded;
+        bool pic1Processed;
+        bool pic2Loaded;
+        bool pic2Processed;
+
         public Bitmap pic1OriginalBtm;
         public WriteableBitmap WriteablePic1OriginalBtm;
         public ByteImage pic1OriginalByteImage;
@@ -41,6 +46,10 @@ namespace FaceCode
         public MainWindow()
         {
             InitializeComponent();
+            pic1Loaded = false;
+            pic1Processed = false;
+            pic2Loaded = false;
+            pic2Processed = false;
         }
 
         private async void LoadPicture1_Button(object sender, RoutedEventArgs e)
@@ -77,9 +86,18 @@ namespace FaceCode
             }
         }
 
-        private void GetFeatures_Button(object sender, RoutedEventArgs e)
+        private async void GetFeatures_Button(object sender, RoutedEventArgs e)
         {
-
+            if ((pic1Loaded && !pic1Processed) || (pic2Loaded && !pic2Processed))
+            {
+                BlakWait.Visibility = Visibility.Visible;
+                await GetFeatures();
+                BlakWait.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                MessageBox.Show("There is no image to process !");
+            }
         }
 
         private void Compare_Button(object sender, RoutedEventArgs e)
@@ -101,10 +119,37 @@ namespace FaceCode
             }
         }
 
+        private async Task GetFeatures()
+        {
+            if (pic1Loaded && !pic1Processed)
+            {
+                await Task.Run(() =>
+                {
+                    pic1ProcessedByteImage = new ByteImage(pic1OriginalByteImage);
+                    Helper.ProcessPicture(pic1ProcessedByteImage);
+                    pic1Processed = true;
+                });
+            }
+            if (pic2Loaded && !pic2Processed)
+            {
+                await Task.Run(() =>
+                {
+                    pic2ProcessedByteImage = new ByteImage(pic2OriginalByteImage);
+                    Helper.ProcessPicture(pic2ProcessedByteImage);
+                    pic2Processed = true;
+                });
+            }
+            if (pic1ProcessedByteImage != null && pic1Processed)
+                face1_processed.Source = pic1ProcessedByteImage.ToBitmapSource();
+            if (pic2ProcessedByteImage != null && pic2Processed)
+                face2_processed.Source = pic2ProcessedByteImage.ToBitmapSource();
+        }
+
         private void performLoadingPictures(BitmapImage btmi, string FileName, int mode)
         {
             if (mode == 0)
             {
+                pic1Loaded = false;
                 pic1OriginalBtm = (Bitmap)Bitmap.FromFile(FileName);
                 var temp = new BitmapImage(new Uri(FileName));
                 WriteablePic1OriginalBtm = new WriteableBitmap(temp);
@@ -114,9 +159,12 @@ namespace FaceCode
                 temp = new BitmapImage(new Uri(FileName));
                 WriteablePic1ProcessedBtm = new WriteableBitmap(temp);
                 pic1ProcessedByteImage = new ByteImage(WriteablePic1ProcessedBtm, pic1ProcessedBtm);
+                pic1Loaded = true;
+                pic1Processed = false;
             }
             else if (mode == 1)
             {
+                pic2Loaded = false;
                 pic2OriginalBtm = (Bitmap)Bitmap.FromFile(FileName);
                 var temp = new BitmapImage(new Uri(FileName));
                 WriteablePic2OriginalBtm = new WriteableBitmap(temp);
@@ -126,6 +174,8 @@ namespace FaceCode
                 temp = new BitmapImage(new Uri(FileName));
                 WriteablePic2ProcessedBtm = new WriteableBitmap(temp);
                 pic2ProcessedByteImage = new ByteImage(WriteablePic2ProcessedBtm, pic2ProcessedBtm);
+                pic2Loaded = true;
+                pic2Processed = false;
             }
         }
     }
