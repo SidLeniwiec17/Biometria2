@@ -22,7 +22,7 @@ namespace FaceCode
             }
         }
 
-        public static void Binarization(ByteImage btm)
+        public static void Binarization(ByteImage btm, int suggestedtreshold)
         {
             int pixAmount = 0;
             double sum = 0;
@@ -37,6 +37,10 @@ namespace FaceCode
                 }
             }
             int treshold = (int)sum / pixAmount;
+            if(suggestedtreshold > 0)
+            {
+                treshold = suggestedtreshold;
+            }
             for (int x = 0; x < btm.Width; x++)
             {
                 for (int y = 0; y < btm.Height; y++)
@@ -138,10 +142,63 @@ namespace FaceCode
                 {
                     byte[] oldColour;
                     oldColour = btm.getPixel(x, y);
-                    var value = oldColour[1] < treshold ? (byte)(0.6 * (double)oldColour[1]) : (byte)(1.4 * (double)oldColour[1]);
+                    var value = oldColour[1] < treshold ? (byte)(0.4 * (double)oldColour[1]) : (byte)(1.6 * (double)oldColour[1]);
                     btm.setPixel(x, y, oldColour[0], (byte)value, (byte)value, (byte)value);
                 }
             }
+        }
+
+        public static int[] GetHorizontalHistogram(ByteImage btm)
+        {
+            int[] histogram = new int[btm.Width];
+
+            for (int x = 0; x < btm.Width; x++)
+            {
+                for (int y = 0; y < btm.Height; y++)
+                {
+                    byte[] oldColour;
+                    oldColour = btm.getPixel(x, y);
+                    var value = oldColour[1] == 0 ? 1 : 0;
+                    histogram[x] += value;
+                }
+            }
+
+            return histogram;
+        }
+
+        public static int[] GetVerticalHistogram(ByteImage btm)
+        {
+            int[] histogram = new int[btm.Height];
+            for (int y = 0; y < btm.Height; y++)
+            {
+                for (int x = 0; x < btm.Width; x++)
+                {
+                    byte[] oldColour;
+                    oldColour = btm.getPixel(x, y);
+                    var value = oldColour[1] == 0 ? 1 : 0;
+                    histogram[y] += value;
+                }
+            }
+            return histogram;
+        }
+
+        public static int HorizontalCenter(int[] histogram)
+        {
+            int centerX = 0;
+           
+            return centerX;
+        }
+
+        public static int VerticalCenter(int[] histogram)
+        {
+            int centerY = 0;
+
+            return centerY;
+        }
+
+        public static int[] Smooth(int[] histogram)
+        {
+            return histogram;
         }
 
         public static void ProcessPicture(ByteImage picture)
@@ -152,6 +209,16 @@ namespace FaceCode
             int treshold = Blackout(picture);
             LowPassFilter(picture);
             StretchColors(picture, treshold);
+            Binarization(picture, (int)(1.5 * (double)treshold));
+            int[] horizontalHistogram = GetHorizontalHistogram(picture);
+            int[] verticalHistogram = GetVerticalHistogram(picture);
+
+            //WYGLADZANIE !! moving average
+            horizontalHistogram = Smooth(horizontalHistogram);
+            verticalHistogram = Smooth(verticalHistogram);
+            //Znalezienie szczytów !! moje algo
+            CenterX = HorizontalCenter(horizontalHistogram);
+            CenterY = VerticalCenter(verticalHistogram);
         }
     }
 }
