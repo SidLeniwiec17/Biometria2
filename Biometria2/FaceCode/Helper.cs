@@ -305,7 +305,7 @@ namespace FaceCode
                     break;
                 }
             }
-            for (int i = histogram.Length -1; i>=0; i--)
+            for (int i = histogram.Length - 1; i >= 0; i--)
             {
                 if (histogram[i] > 0)
                 {
@@ -321,11 +321,11 @@ namespace FaceCode
             horizontalHistogram = Smooth(horizontalHistogram);
             horizontalHistogram = Smooth(horizontalHistogram);
 
-            
+
 
             int max = 0;
             int pos = 0;
-            for (int i = firstLeft; i < firstRight ; i++)
+            for (int i = firstLeft; i < firstRight; i++)
             {
                 if (horizontalHistogram[i] > max)
                 {
@@ -377,10 +377,10 @@ namespace FaceCode
         {
             List<Queue<System.Drawing.Point>> stackList = new List<Queue<System.Drawing.Point>>();
             bool[][] isAdded = new bool[bmp.Width][];
-            for(int i = 0; i < isAdded.Length; i++)
+            for (int i = 0; i < isAdded.Length; i++)
             {
                 isAdded[i] = new bool[bmp.Height];
-                for(int j = 0; j < bmp.Height; j++)
+                for (int j = 0; j < bmp.Height; j++)
                 {
                     isAdded[i][j] = false;
                 }
@@ -394,12 +394,12 @@ namespace FaceCode
             int rB = bmp.Width;
             int uB = bmp.Height;
             int bB = 0;
-                       
+
             int stackIndex = 0;
             while (ShouldContinue(stackList))
             {
                 System.Drawing.Point a = stackList[stackIndex].Dequeue();
-               
+
                 if (a.X < rB && a.X >= lB &&
                         a.Y < uB && a.Y >= bB)//make sure we stay within bounds
                 {
@@ -419,7 +419,7 @@ namespace FaceCode
                                 stackList[stackIndex].Enqueue(new System.Drawing.Point(a.X + 1, a.Y));
                                 isAdded[a.X + 1][a.Y] = true;
                             }
-                            if (a.X < rB && a.X >= lB && a.Y - 1 < uB && a.Y - 1>= bB && !isAdded[a.X][a.Y - 1])
+                            if (a.X < rB && a.X >= lB && a.Y - 1 < uB && a.Y - 1 >= bB && !isAdded[a.X][a.Y - 1])
                             {
                                 stackList[stackIndex].Enqueue(new System.Drawing.Point(a.X, a.Y - 1));
                                 isAdded[a.X][a.Y - 1] = true;
@@ -492,7 +492,7 @@ namespace FaceCode
                     break;
                 }
             }
-            for (int i = histogram.Length -1 ; i >= 0; i--)
+            for (int i = histogram.Length - 1; i >= 0; i--)
             {
                 if (histogram[i] > 0)
                 {
@@ -535,7 +535,7 @@ namespace FaceCode
             Point bottomLeft = new Point(horizontalBorders.ElementAt(0), verticalBorders.ElementAt(2));
             Point bottomRight = new Point(horizontalBorders.ElementAt(2), verticalBorders.ElementAt(2));
 
-            Point meanCenter = new Point((((Math.Abs(upRight.X - upLeft.X) / 2) + upLeft.X) + center.X) / 2, (((Math.Abs(upRight.Y - bottomRight.Y) / 2) + upRight.Y ) + center.Y) / 2);
+            Point meanCenter = new Point((((Math.Abs(upRight.X - upLeft.X) / 2) + upLeft.X) + center.X) / 2, (((Math.Abs(upRight.Y - bottomRight.Y) / 2) + upRight.Y) + center.Y) / 2);
 
             int meanWidth = (Math.Abs(upLeft.X - meanCenter.X) + Math.Abs(meanCenter.X - upRight.X)) / 2;
             int meanHeigt = (Math.Abs(upLeft.Y - meanCenter.Y) + Math.Abs(meanCenter.Y - upRight.Y)) / 2;
@@ -550,7 +550,7 @@ namespace FaceCode
             corners.Add(bottomLeft);
             corners.Add(bottomRight);
 
-            for(int x = bottomLeft.X; x < bottomRight.X; x ++)
+            for (int x = bottomLeft.X; x < bottomRight.X; x++)
             {
                 ori.setPixel(x, upLeft.Y, color);
                 ori.setPixel(x, bottomLeft.Y, color);
@@ -567,7 +567,7 @@ namespace FaceCode
 
         public static Point CorrectPoint(Point point, ByteImage orig)
         {
-            if(point.X >= orig.Width)
+            if (point.X >= orig.Width)
             {
                 point.X = orig.Width - 1;
             }
@@ -586,9 +586,26 @@ namespace FaceCode
             return point;
         }
 
+        private static ByteImage CutOffFace(List<Point> corners, ByteImage ori)
+        {
+            int width = corners.ElementAt(1).X - corners.ElementAt(0).X;
+            int height = corners.ElementAt(2).Y - corners.ElementAt(0).Y;
+            ByteImage face = new ByteImage(width, height);
+
+            for (int x = 0; x < face.Width; x++)
+            {
+                for (int y = 0; y < face.Height; y++)
+                {
+                    face.setPixel(x, y, ori.getPixel(x + corners.ElementAt(0).X, y + corners.ElementAt(0).Y));
+                }
+            }
+            return face;
+        }
+
         public static ByteImage ProcessPicture(ByteImage picture)
         {
             ByteImage ori = new ByteImage(picture);
+            ByteImage onlyFace = new ByteImage(picture);
             int CenterX = 0;
             int CenterY = 0;
             Test(picture);
@@ -623,9 +640,9 @@ namespace FaceCode
             GrayScale(ori);
             MarkFaceCenter(ori, horizontalBorders.ElementAt(1), verticalBorders.ElementAt(1));
             List<System.Drawing.Point> corners = DrawBorders(ori, horizontalBorders, verticalBorders, newColor);
-            picture = ori;
-
+            onlyFace = CutOffFace(corners, onlyFace);
+            picture = new ByteImage(onlyFace);
             return picture;
-        }       
+        }
     }
 }

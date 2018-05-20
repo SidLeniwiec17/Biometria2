@@ -46,6 +46,16 @@ namespace FaceCode
             Bitmap = new Bitmap(bitmap.Bitmap);
         }
 
+        public ByteImage(int width, int height)
+        {
+            Width = width;
+            Height = height;
+            int size = Width * Height * 4;
+            Pixels = new byte[size];
+            Stride = Width * 4;
+            Bitmap = new Bitmap(width, height);
+        }
+
         public byte[] getPixel(int x, int y)
         {
             int offset = y * Stride + x * 4;
