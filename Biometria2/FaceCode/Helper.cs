@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -148,7 +149,7 @@ namespace FaceCode
             }
         }
 
-        public static int[] GetHorizontalHistogram(ByteImage btm)
+        public static int[] GetHorizontalHistogram(ByteImage btm, byte comparedColor)
         {
             int[] histogram = new int[btm.Width];
 
@@ -158,7 +159,7 @@ namespace FaceCode
                 {
                     byte[] oldColour;
                     oldColour = btm.getPixel(x, y);
-                    var value = oldColour[1] == 0 ? 1 : 0;
+                    var value = oldColour[1] == comparedColor ? 1 : 0;
                     histogram[x] += value;
                 }
             }
@@ -166,7 +167,7 @@ namespace FaceCode
             return histogram;
         }
 
-        public static int[] GetVerticalHistogram(ByteImage btm)
+        public static int[] GetVerticalHistogram(ByteImage btm, byte comparedColor)
         {
             int[] histogram = new int[btm.Height];
             for (int y = 0; y < btm.Height; y++)
@@ -175,7 +176,7 @@ namespace FaceCode
                 {
                     byte[] oldColour;
                     oldColour = btm.getPixel(x, y);
-                    var value = oldColour[1] == 0 ? 1 : 0;
+                    var value = oldColour[1] == comparedColor ? 1 : 0;
                     histogram[y] += value;
                 }
             }
@@ -288,6 +289,54 @@ namespace FaceCode
             }
             centerY = pos;
             return centerY;
+        }
+
+        public static List<int> HorizontalLeftCenterRight(int[] histogram)
+        {
+            List<int> points = new List<int>();
+            int firstLeft = histogram.Length;
+            int firstRight = 0;
+
+            for (int i = 0; i < histogram.Length; i++)
+            {
+                if (histogram[i] > 0)
+                {
+                    firstLeft = i;
+                    break;
+                }
+            }
+            for (int i = histogram.Length -1; i>=0; i--)
+            {
+                if (histogram[i] > 0)
+                {
+                    firstRight = i;
+                    break;
+                }
+            }
+
+            var horizontalHistogram = Smooth(histogram);
+            horizontalHistogram = Smooth(horizontalHistogram);
+            horizontalHistogram = Smooth(horizontalHistogram);
+            horizontalHistogram = Smooth(horizontalHistogram);
+            horizontalHistogram = Smooth(horizontalHistogram);
+            horizontalHistogram = Smooth(horizontalHistogram);
+
+            
+
+            int max = 0;
+            int pos = 0;
+            for (int i = firstLeft; i < firstRight ; i++)
+            {
+                if (horizontalHistogram[i] > max)
+                {
+                    pos = i;
+                    max = horizontalHistogram[i];
+                }
+            }
+            points.Add(firstLeft);
+            points.Add(pos);
+            points.Add(firstRight);
+            return points;
         }
 
         public static int[] Smooth(int[] histogram)
@@ -429,8 +478,117 @@ namespace FaceCode
             return canAdd;
         }
 
-        public static void ProcessPicture(ByteImage picture)
+        public static List<int> VerticalUpCenterBottom(int[] histogram)
         {
+            List<int> points = new List<int>();
+            int firstUp = histogram.Length;
+            int firstDown = 0;
+
+            for (int i = 0; i < histogram.Length; i++)
+            {
+                if (histogram[i] > 0)
+                {
+                    firstUp = i;
+                    break;
+                }
+            }
+            for (int i = histogram.Length -1 ; i >= 0; i--)
+            {
+                if (histogram[i] > 0)
+                {
+                    firstDown = i;
+                    break;
+                }
+            }
+
+            var horizontalHistogram = Smooth(histogram);
+            horizontalHistogram = Smooth(horizontalHistogram);
+            horizontalHistogram = Smooth(horizontalHistogram);
+            horizontalHistogram = Smooth(horizontalHistogram);
+            horizontalHistogram = Smooth(horizontalHistogram);
+            horizontalHistogram = Smooth(horizontalHistogram);
+
+
+
+            int max = 0;
+            int pos = 0;
+            for (int i = firstUp; i < firstDown; i++)
+            {
+                if (horizontalHistogram[i] > max)
+                {
+                    pos = i;
+                    max = horizontalHistogram[i];
+                }
+            }
+            points.Add(firstUp);
+            points.Add(pos);
+            points.Add(firstDown);
+            return points;
+        }
+
+        private static List<Point> DrawBorders(ByteImage ori, List<int> horizontalBorders, List<int> verticalBorders, byte[] color)
+        {
+            List<Point> corners = new List<Point>();
+            Point center = new Point(horizontalBorders.ElementAt(1), verticalBorders.ElementAt(1));
+            Point upLeft = new Point(horizontalBorders.ElementAt(0), verticalBorders.ElementAt(0));
+            Point upRight = new Point(horizontalBorders.ElementAt(2), verticalBorders.ElementAt(0));
+            Point bottomLeft = new Point(horizontalBorders.ElementAt(0), verticalBorders.ElementAt(2));
+            Point bottomRight = new Point(horizontalBorders.ElementAt(2), verticalBorders.ElementAt(2));
+
+            Point meanCenter = new Point((((Math.Abs(upRight.X - upLeft.X) / 2) + upLeft.X) + center.X) / 2, (((Math.Abs(upRight.Y - bottomRight.Y) / 2) + upRight.Y ) + center.Y) / 2);
+
+            int meanWidth = (Math.Abs(upLeft.X - meanCenter.X) + Math.Abs(meanCenter.X - upRight.X)) / 2;
+            int meanHeigt = (Math.Abs(upLeft.Y - meanCenter.Y) + Math.Abs(meanCenter.Y - upRight.Y)) / 2;
+
+            upLeft = CorrectPoint(new Point(meanCenter.X - meanWidth - (int)(0.1 * meanWidth), meanCenter.Y - meanHeigt - (int)(0.1 * meanHeigt)), ori);
+            upRight = CorrectPoint(new Point(meanCenter.X + meanWidth + (int)(0.1 * meanWidth), meanCenter.Y - meanHeigt - (int)(0.1 * meanHeigt)), ori);
+            bottomLeft = CorrectPoint(new Point(meanCenter.X - meanWidth - (int)(0.1 * meanWidth), meanCenter.Y + meanHeigt + (int)(0.1 * meanHeigt)), ori);
+            bottomRight = CorrectPoint(new Point(meanCenter.X + meanWidth + (int)(0.1 * meanWidth), meanCenter.Y + meanHeigt + (int)(0.1 * meanHeigt)), ori);
+
+            corners.Add(upLeft);
+            corners.Add(upRight);
+            corners.Add(bottomLeft);
+            corners.Add(bottomRight);
+
+            for(int x = bottomLeft.X; x < bottomRight.X; x ++)
+            {
+                ori.setPixel(x, upLeft.Y, color);
+                ori.setPixel(x, bottomLeft.Y, color);
+            }
+
+            for (int y = upLeft.Y; y < bottomLeft.Y; y++)
+            {
+                ori.setPixel(upLeft.X, y, color);
+                ori.setPixel(upRight.X, y, color);
+            }
+
+            return corners;
+        }
+
+        public static Point CorrectPoint(Point point, ByteImage orig)
+        {
+            if(point.X >= orig.Width)
+            {
+                point.X = orig.Width - 1;
+            }
+            if (point.X < 0)
+            {
+                point.X = 0;
+            }
+            if (point.Y >= orig.Height)
+            {
+                point.Y = orig.Height - 1;
+            }
+            if (point.Y < 0)
+            {
+                point.Y = 0;
+            }
+            return point;
+        }
+
+        public static ByteImage ProcessPicture(ByteImage picture)
+        {
+            ByteImage ori = new ByteImage(picture);
             int CenterX = 0;
             int CenterY = 0;
             Test(picture);
@@ -439,8 +597,8 @@ namespace FaceCode
 
             StretchColors(picture, (int)(1.2 * (double)treshold));
             Binarization(picture, (int)(1.6 * (double)treshold));
-            int[] horizontalHistogram = GetHorizontalHistogram(picture);
-            int[] verticalHistogram = GetVerticalHistogram(picture);
+            int[] horizontalHistogram = GetHorizontalHistogram(picture, 0);
+            int[] verticalHistogram = GetVerticalHistogram(picture, 0);
 
             //WYGLADZANIE !! moving average
             horizontalHistogram = Smooth(horizontalHistogram);
@@ -451,6 +609,23 @@ namespace FaceCode
 
             var newColor = MarkFaceCenter(picture, CenterX, CenterY);
             FloodFill(picture, new System.Drawing.Point(CenterX, CenterY), new List<byte[]>() { new byte[] { 255, 255, 255, 255 }, newColor }, newColor);
-        }
+
+            int[] horizontaRedlHistogram = GetHorizontalHistogram(picture, newColor[1]);
+            int[] verticalRedHistogram = GetVerticalHistogram(picture, newColor[1]);
+
+            //WYGLADZANIE !! moving average
+            horizontaRedlHistogram = Smooth(horizontaRedlHistogram);
+            verticalRedHistogram = Smooth(verticalRedHistogram);
+
+            List<int> horizontalBorders = HorizontalLeftCenterRight(horizontaRedlHistogram);
+            List<int> verticalBorders = VerticalUpCenterBottom(verticalRedHistogram);
+
+            GrayScale(ori);
+            MarkFaceCenter(ori, horizontalBorders.ElementAt(1), verticalBorders.ElementAt(1));
+            List<System.Drawing.Point> corners = DrawBorders(ori, horizontalBorders, verticalBorders, newColor);
+            picture = ori;
+
+            return picture;
+        }       
     }
 }

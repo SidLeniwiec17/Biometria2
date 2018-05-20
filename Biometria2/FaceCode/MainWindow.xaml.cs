@@ -126,7 +126,7 @@ namespace FaceCode
                 await Task.Run(() =>
                 {
                     pic1ProcessedByteImage = new ByteImage(pic1OriginalByteImage);
-                    Helper.ProcessPicture(pic1ProcessedByteImage);
+                    pic1ProcessedByteImage = Helper.ProcessPicture(pic1ProcessedByteImage);
                     pic1Processed = true;
                 });
             }
@@ -135,7 +135,7 @@ namespace FaceCode
                 await Task.Run(() =>
                 {
                     pic2ProcessedByteImage = new ByteImage(pic2OriginalByteImage);
-                    Helper.ProcessPicture(pic2ProcessedByteImage);
+                    pic2ProcessedByteImage = Helper.ProcessPicture(pic2ProcessedByteImage);
                     pic2Processed = true;
                 });
             }
