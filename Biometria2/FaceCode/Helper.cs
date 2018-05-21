@@ -68,6 +68,24 @@ namespace FaceCode
             }
         }
 
+        public static int GetTreshold(ByteImage btm)
+        {
+            int pixAmount = 0;
+            double sum = 0;
+            for (int x = 0; x < btm.Width ; x++)
+            {
+                for (int y = 0; y < btm.Height ; y++)
+                {
+                    byte[] oldColour;
+                    oldColour = btm.getPixel(x, y);
+                    sum += (double)oldColour[1];
+                    pixAmount++;
+                }
+            }
+            int treshold = (int)sum / pixAmount;
+            return treshold;
+        }
+
         public static int Blackout(ByteImage btm)
         {
             int pixAmount = 0;
@@ -135,7 +153,7 @@ namespace FaceCode
             }
         }
 
-        public static void StretchColors(ByteImage btm, int treshold)
+        public static void StretchColors(ByteImage btm, int treshold, double a, double b)
         {
             for (int x = 0; x < btm.Width; x++)
             {
@@ -143,7 +161,7 @@ namespace FaceCode
                 {
                     byte[] oldColour;
                     oldColour = btm.getPixel(x, y);
-                    var value = oldColour[1] < treshold ? (byte)(0.1 * (double)oldColour[1]) : (byte)(1.5 * (double)oldColour[1]);
+                    var value = oldColour[1] < treshold ? (byte)(a * (double)oldColour[1]) : (byte)(b * (double)oldColour[1]);
                     btm.setPixel(x, y, oldColour[0], (byte)value, (byte)value, (byte)value);
                 }
             }
@@ -612,7 +630,7 @@ namespace FaceCode
             int treshold = Blackout(picture);
             GaussFiltr(picture);
 
-            StretchColors(picture, (int)(1.2 * (double)treshold));
+            StretchColors(picture, (int)(1.2 * (double)treshold), 0.1, 1.5);
             Binarization(picture, (int)(1.6 * (double)treshold));
             int[] horizontalHistogram = GetHorizontalHistogram(picture, 0);
             int[] verticalHistogram = GetVerticalHistogram(picture, 0);
@@ -639,9 +657,22 @@ namespace FaceCode
 
             GrayScale(ori);
             MarkFaceCenter(ori, horizontalBorders.ElementAt(1), verticalBorders.ElementAt(1));
+
+            //TU MAMY W MIARE TWARZ
             List<System.Drawing.Point> corners = DrawBorders(ori, horizontalBorders, verticalBorders, newColor);
             onlyFace = CutOffFace(corners, onlyFace);
             picture = new ByteImage(onlyFace);
+                       
+            GrayScale(picture);
+            //GaussFiltr(picture);
+            treshold = GetTreshold(picture);
+            //StretchColors(picture, (int)(0.8 * (double)treshold), 0.8, 1.2);
+            Binarization(picture, (int)(1.0* (double)treshold));
+            // horizontalHistogram = GetHorizontalHistogram(picture, 0);
+            // verticalHistogram = GetVerticalHistogram(picture, 0);           
+            // horizontalHistogram = Smooth(horizontalHistogram);
+            //verticalHistogram = Smooth(verticalHistogram);
+
             return picture;
         }
     }
