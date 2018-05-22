@@ -72,9 +72,9 @@ namespace FaceCode
         {
             int pixAmount = 0;
             double sum = 0;
-            for (int x = 0; x < btm.Width ; x++)
+            for (int x = 0; x < btm.Width; x++)
             {
-                for (int y = 0; y < btm.Height ; y++)
+                for (int y = 0; y < btm.Height; y++)
                 {
                     byte[] oldColour;
                     oldColour = btm.getPixel(x, y);
@@ -625,25 +625,25 @@ namespace FaceCode
             int[] Sums = new int[colorCounter];
             int[] Counter = new int[colorCounter];
             int[] Values = new int[colorCounter];
-            for(int i = 0; i < colorCounter; i++)
+            for (int i = 0; i < colorCounter; i++)
             {
                 Values[i] = (255 / colorCounter) * i;
                 Sums[i] = 0;
                 Counter[i] = 0;
             }
 
-            for(int i = 0; i < iteration; i++)
+            for (int i = 0; i < iteration; i++)
             {
-                for(int x = 0; x < picture.Width; x++)
+                for (int x = 0; x < picture.Width; x++)
                 {
-                    for(int y = 0; y < picture.Height; y++)
+                    for (int y = 0; y < picture.Height; y++)
                     {
                         byte[] color = picture.getPixel(x, y);
                         int dist = 255;
                         int indx = 0;
-                        for(int c = 0; c < colorCounter; c++)
+                        for (int c = 0; c < colorCounter; c++)
                         {
-                            if(Math.Abs(color[1] - Values[c]) < dist)
+                            if (Math.Abs(color[1] - Values[c]) < dist)
                             {
                                 dist = Math.Abs(color[1] - Values[c]);
                                 indx = c;
@@ -654,7 +654,7 @@ namespace FaceCode
                     }
                 }
 
-                for(int c = 0; c < colorCounter; c++)
+                for (int c = 0; c < colorCounter; c++)
                 {
                     Values[c] = Sums[c] / Counter[c];
                     Sums[c] = 0;
@@ -686,7 +686,7 @@ namespace FaceCode
             int mostCommonIndex = 0;
             for (int c = 0; c < colorCounter; c++)
             {
-                if(Counter[c] > mostCommonCounter)
+                if (Counter[c] > mostCommonCounter)
                 {
                     mostCommonCounter = Counter[c];
                     mostCommonIndex = c;
@@ -717,27 +717,221 @@ namespace FaceCode
 
         private static Point[] GetMouthLine(int[] horizontalHistogram, int[] verticalHistogram)
         {
-            throw new NotImplementedException();
+            //od konjca pierwsze wzniesienie 
+            Point pointLeft = new Point();
+            Point pointRight = new Point();
+
+            int lowLevelStart = (int)(0.45 * (double)(verticalHistogram.Max() - verticalHistogram.Min()));
+            bool isInLowLevel = false;
+            int currTop = 0;
+            int currIndx = 0;
+
+            for (int i = verticalHistogram.Length -1; i > verticalHistogram.Length / 2; i--)
+            {
+                if (verticalHistogram[i] <= lowLevelStart)
+                {
+                    isInLowLevel = true;
+                }
+                if (isInLowLevel && verticalHistogram[i] > lowLevelStart)
+                {
+                    if (verticalHistogram[i] > currTop)
+                    {
+                        currTop = verticalHistogram[i];
+                        currIndx = i;
+                    }
+                }
+                if (currTop != 0 && isInLowLevel && verticalHistogram[i] < lowLevelStart)
+                {
+                    break;
+                }
+            }
+            int y = currIndx;
+            pointLeft.X = 0;
+            pointLeft.Y = y;
+            pointRight.X = verticalHistogram.Length - 1;
+            pointRight.Y = y;
+
+            return new Point[] { pointLeft, pointRight };
         }
 
         private static Point[] GetEyesLine(int[] horizontalHistogram, int[] verticalHistogram)
         {
-            throw new NotImplementedException();
+            //od poczatku pierwsze wzniesienie 
+            Point pointLeft = new Point();
+            Point pointRight = new Point();
+
+            int lowLevelStart = (int)(0.45 * (double)(verticalHistogram.Max() - verticalHistogram.Min()));
+            bool isInLowLevel = false;
+            int currTop = 0;
+            int currIndx = 0;
+
+            for (int i = verticalHistogram.Length / 10; i < verticalHistogram.Length / 2; i++)
+            {
+                if (verticalHistogram[i] <= lowLevelStart)
+                {
+                    isInLowLevel = true;
+                }
+                if (isInLowLevel && verticalHistogram[i] > lowLevelStart)
+                {
+                    if (verticalHistogram[i] > currTop)
+                    {
+                        currTop = verticalHistogram[i];
+                        currIndx = i;
+                    }
+                }
+                if (currTop != 0 && isInLowLevel && verticalHistogram[i] < lowLevelStart)
+                {
+                    break;
+                }
+            }
+            int y = currIndx;
+            pointLeft.X = 0;
+            pointLeft.Y = y;
+            pointRight.X = verticalHistogram.Length - 1;
+            pointRight.Y = y;
+
+            return new Point[] { pointLeft, pointRight };
         }
 
         private static Point[] GetFaceWidth(int[] horizontalHistogram, int[] verticalHistogram)
         {
-            throw new NotImplementedException();
+            //od poczatku pierwsze wzniesienie 
+            Point pointLeft = new Point();
+            Point pointRight = new Point();
+
+            int leftBorder = 0;
+            int rightBorder = 0;
+
+            int searchRegion = (int)(horizontalHistogram.Length / 20);
+            int jumpSize = (int)(0.3 * (double)(horizontalHistogram.Max() - horizontalHistogram.Min()));
+
+            for(int i = 0; i < horizontalHistogram.Length - searchRegion; i ++)
+            {
+                int currLevel = horizontalHistogram[i];
+                int nextLevel = horizontalHistogram[i + searchRegion];
+                if(Math.Abs(currLevel - nextLevel) >= jumpSize)
+                {
+                    leftBorder = ((2 * i) + searchRegion) / 2;
+                    break;
+                }
+            }
+
+            for (int i = horizontalHistogram.Length - 1; i > searchRegion; i--)
+            {
+                int currLevel = horizontalHistogram[i];
+                int nextLevel = horizontalHistogram[i - searchRegion];
+                if (Math.Abs(currLevel - nextLevel) >= jumpSize)
+                {
+                    rightBorder = ((2 * i) + searchRegion) / 2;
+                    break;
+                }
+            }
+
+            pointLeft.X = leftBorder;
+            pointLeft.Y = 0;
+            pointRight.X = horizontalHistogram.Length - rightBorder;
+            pointRight.Y = 0;
+
+            return new Point[] { pointLeft, pointRight };
         }
 
         private static Point[] GetFaceHeight(int[] horizontalHistogram, int[] verticalHistogram)
         {
-            throw new NotImplementedException();
+            //od poczatku pierwsze wzniesienie 
+            Point pointLeft = new Point();
+            Point pointRight = new Point();
+
+            int leftBorder = 0;
+            int rightBorder = 0;
+
+            int searchRegion = (int)(verticalHistogram.Length / 20);
+            int jumpSize = (int)(0.35 * (double)(verticalHistogram.Max() - verticalHistogram.Min()));
+
+            for (int i = 0; i < verticalHistogram.Length - searchRegion; i++)
+            {
+                int currLevel = verticalHistogram[i];
+                int nextLevel = verticalHistogram[i + searchRegion];
+                if (Math.Abs(currLevel - nextLevel) >= jumpSize)
+                {
+                    leftBorder = ((2 * i) + searchRegion) / 2;
+                    break;
+                }
+            }
+
+            for (int i = verticalHistogram.Length - 1; i > searchRegion; i--)
+            {
+                int currLevel = verticalHistogram[i];
+                int nextLevel = verticalHistogram[i - searchRegion];
+                if (Math.Abs(currLevel - nextLevel) >= (0.8 *jumpSize))
+                {
+                    rightBorder = ( i + searchRegion) ;
+                    break;
+                }
+            }
+
+            pointLeft.X = 0;
+            pointLeft.Y = leftBorder + 10;
+            pointRight.X = 0;
+            pointRight.Y = verticalHistogram.Length - rightBorder ;
+
+            return new Point[] { pointLeft, pointRight };
         }
 
         private static Point[] GetMidLine(int[] horizontalHistogram, int[] verticalHistogram)
         {
-            throw new NotImplementedException();
+            Point pointLeft = new Point();
+            Point pointRight = new Point();
+
+            int min = horizontalHistogram.Max();
+            int indx = 0;
+
+            for (int i = horizontalHistogram.Length / 4; i < horizontalHistogram.Length - (horizontalHistogram.Length / 4); i++)
+            {               
+                if (horizontalHistogram[i] < min)
+                {
+                    min = horizontalHistogram[i];
+                    indx = i;
+                }
+            }
+
+            pointLeft.X = indx;
+            pointLeft.Y = 0;
+            pointRight.X = indx;
+            pointRight.Y = verticalHistogram.Length - 1;
+
+            return new Point[] { pointLeft, pointRight };
+        }
+
+        public static void DrawLine(Point[] points , byte[] color, ByteImage picture)
+        {
+            bool horizontal = false;
+
+            try
+            {
+                if (points[1].X - points[0].X > 0)
+                {
+                    horizontal = true;
+                }
+
+                if (horizontal)
+                {
+                    for (int x = points[0].X; x < points[1].X; x++)
+                    {
+                        picture.setPixel(x, points[0].Y, color);
+                    }
+                }
+                else
+                {
+                    for (int y = points[0].Y; y < points[1].Y; y++)
+                    {
+                        picture.setPixel(points[0].X, y, color);
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                ;
+            }
         }
 
         public static ByteImage ProcessPicture(ByteImage picture)
@@ -782,22 +976,35 @@ namespace FaceCode
             List<System.Drawing.Point> corners = DrawBorders(ori, horizontalBorders, verticalBorders, newColor);
             onlyFace = CutOffFace(corners, onlyFace);
             picture = new ByteImage(onlyFace);
-                       
+
             GrayScale(picture);
-            int skinColor = GetSkinCollor(picture);            
+            int skinColor = GetSkinCollor(picture);
             Binarization(picture, (int)(0.7 * (double)skinColor));
             horizontalHistogram = GetHorizontalHistogram(picture, 0);
-            verticalHistogram = GetVerticalHistogram(picture, 0);           
-            horizontalHistogram = Smooth(horizontalHistogram);
-            verticalHistogram = Smooth(verticalHistogram);
+            verticalHistogram = GetVerticalHistogram(picture, 0);
+            for (int i = 0; i < 10; i++)
+            {
+                horizontalHistogram = Smooth(horizontalHistogram);
+                verticalHistogram = Smooth(verticalHistogram);
+            }
 
             Point[] liniaSrodka = GetMidLine(horizontalHistogram, verticalHistogram);
             Point[] wysokoscTwarzy = GetFaceHeight(horizontalHistogram, verticalHistogram);
+            wysokoscTwarzy[0].X = liniaSrodka[0].X;
+            wysokoscTwarzy[1].X = liniaSrodka[0].X;
             Point[] szerokoscTwarzy = GetFaceWidth(horizontalHistogram, verticalHistogram);
+            szerokoscTwarzy[0].Y = Math.Abs(wysokoscTwarzy[1].Y - wysokoscTwarzy[0].Y);
+            szerokoscTwarzy[1].Y = Math.Abs(wysokoscTwarzy[1].Y - wysokoscTwarzy[0].Y);
             Point[] liniaOczu = GetEyesLine(horizontalHistogram, verticalHistogram);
             Point[] lniaUst = GetMouthLine(horizontalHistogram, verticalHistogram);
 
+            DrawLine(liniaSrodka, new byte[] { 255, 0, 255, 0 }, picture); //Green
+            DrawLine(wysokoscTwarzy, new byte[] { 255, 255, 0, 0 }, picture); //Red
+            DrawLine(szerokoscTwarzy, new byte[] { 255, 255, 0, 0 }, picture); //Red
+            DrawLine(liniaOczu, new byte[] { 255, 0, 0, 255 }, picture); //Blue
+            DrawLine(lniaUst, new byte[] { 255, 0, 255, 255 }, picture); //Turkus 
+
             return picture;
-        }        
+        }
     }
 }
