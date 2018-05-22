@@ -201,7 +201,6 @@ namespace FaceCode
             return histogram;
         }
 
-
         public static byte[] MarkFaceCenter(ByteImage btm, int X, int Y)
         {
             var currPix = btm.getPixel(X, Y);
@@ -466,7 +465,6 @@ namespace FaceCode
             }
         }
 
-
         private static bool ShouldContinue(List<Queue<System.Drawing.Point>> stackList)
         {
             bool isSomething = false;
@@ -620,6 +618,128 @@ namespace FaceCode
             return face;
         }
 
+        private static int GetSkinCollor(ByteImage picture)
+        {
+            int iteration = 15;
+            int colorCounter = 3;
+            int[] Sums = new int[colorCounter];
+            int[] Counter = new int[colorCounter];
+            int[] Values = new int[colorCounter];
+            for(int i = 0; i < colorCounter; i++)
+            {
+                Values[i] = (255 / colorCounter) * i;
+                Sums[i] = 0;
+                Counter[i] = 0;
+            }
+
+            for(int i = 0; i < iteration; i++)
+            {
+                for(int x = 0; x < picture.Width; x++)
+                {
+                    for(int y = 0; y < picture.Height; y++)
+                    {
+                        byte[] color = picture.getPixel(x, y);
+                        int dist = 255;
+                        int indx = 0;
+                        for(int c = 0; c < colorCounter; c++)
+                        {
+                            if(Math.Abs(color[1] - Values[c]) < dist)
+                            {
+                                dist = Math.Abs(color[1] - Values[c]);
+                                indx = c;
+                            }
+                        }
+                        Sums[indx] += color[1];
+                        Counter[indx]++;
+                    }
+                }
+
+                for(int c = 0; c < colorCounter; c++)
+                {
+                    Values[c] = Sums[c] / Counter[c];
+                    Sums[c] = 0;
+                    Counter[c] = 0;
+                }
+            }
+
+            for (int x = 0; x < picture.Width; x++)
+            {
+                for (int y = 0; y < picture.Height; y++)
+                {
+                    byte[] color = picture.getPixel(x, y);
+                    int dist = 255;
+                    int indx = 0;
+                    for (int c = 0; c < colorCounter; c++)
+                    {
+                        if (Math.Abs(color[1] - Values[c]) < dist)
+                        {
+                            dist = Math.Abs(color[1] - Values[c]);
+                            indx = c;
+                        }
+                    }
+                    Sums[indx] += color[1];
+                    Counter[indx]++;
+                }
+            }
+
+            int mostCommonCounter = 0;
+            int mostCommonIndex = 0;
+            for (int c = 0; c < colorCounter; c++)
+            {
+                if(Counter[c] > mostCommonCounter)
+                {
+                    mostCommonCounter = Counter[c];
+                    mostCommonIndex = c;
+                }
+            }
+
+            /*for (int x = 0; x < picture.Width; x++)
+            {
+                for (int y = 0; y < picture.Height; y++)
+                {
+                    byte[] color = picture.getPixel(x, y);
+                    int dist = 255;
+                    int indx = 0;
+                    for (int c = 0; c < colorCounter; c++)
+                    {
+                        if (Math.Abs(color[1] - Values[c]) < dist)
+                        {
+                            dist = Math.Abs(color[1] - Values[c]);
+                            indx = c;
+                        }
+                    }
+                    picture.setPixel(x, y, color[0], (byte)Values[indx], (byte)Values[indx], (byte)Values[indx]);
+                }
+            }*/
+
+            return Values[mostCommonIndex];
+        }
+
+        private static Point[] GetMouthLine(int[] horizontalHistogram, int[] verticalHistogram)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static Point[] GetEyesLine(int[] horizontalHistogram, int[] verticalHistogram)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static Point[] GetFaceWidth(int[] horizontalHistogram, int[] verticalHistogram)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static Point[] GetFaceHeight(int[] horizontalHistogram, int[] verticalHistogram)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static Point[] GetMidLine(int[] horizontalHistogram, int[] verticalHistogram)
+        {
+            throw new NotImplementedException();
+        }
+
         public static ByteImage ProcessPicture(ByteImage picture)
         {
             ByteImage ori = new ByteImage(picture);
@@ -664,16 +784,20 @@ namespace FaceCode
             picture = new ByteImage(onlyFace);
                        
             GrayScale(picture);
-            //GaussFiltr(picture);
-            treshold = GetTreshold(picture);
-            //StretchColors(picture, (int)(0.8 * (double)treshold), 0.8, 1.2);
-            Binarization(picture, (int)(1.0* (double)treshold));
-            // horizontalHistogram = GetHorizontalHistogram(picture, 0);
-            // verticalHistogram = GetVerticalHistogram(picture, 0);           
-            // horizontalHistogram = Smooth(horizontalHistogram);
-            //verticalHistogram = Smooth(verticalHistogram);
+            int skinColor = GetSkinCollor(picture);            
+            Binarization(picture, (int)(0.7 * (double)skinColor));
+            horizontalHistogram = GetHorizontalHistogram(picture, 0);
+            verticalHistogram = GetVerticalHistogram(picture, 0);           
+            horizontalHistogram = Smooth(horizontalHistogram);
+            verticalHistogram = Smooth(verticalHistogram);
+
+            Point[] liniaSrodka = GetMidLine(horizontalHistogram, verticalHistogram);
+            Point[] wysokoscTwarzy = GetFaceHeight(horizontalHistogram, verticalHistogram);
+            Point[] szerokoscTwarzy = GetFaceWidth(horizontalHistogram, verticalHistogram);
+            Point[] liniaOczu = GetEyesLine(horizontalHistogram, verticalHistogram);
+            Point[] lniaUst = GetMouthLine(horizontalHistogram, verticalHistogram);
 
             return picture;
-        }
+        }        
     }
 }
