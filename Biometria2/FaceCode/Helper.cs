@@ -769,7 +769,7 @@ namespace FaceCode
             bool goingUp = false;
             for (int i = verticalHistogram.Length - 1; i > verticalHistogram.Length / 2; i--)
             {
-                if (verticalHistogram[i] > verticalHistogram[i-1])
+                if (verticalHistogram[i] > verticalHistogram[i - 1])
                 {
                     goingUp = false;
                     goingDown = true;
@@ -778,7 +778,7 @@ namespace FaceCode
                         break;
                     }
                 }
-                else if (goingDown && verticalHistogram[i] < verticalHistogram[i-1])
+                else if (goingDown && verticalHistogram[i] < verticalHistogram[i - 1])
                 {
                     goingUp = true;
                     goingDown = false;
@@ -847,7 +847,7 @@ namespace FaceCode
             //od poczatku pierwsze wzniesienie 
             Point pointLeft = new Point();
             Point pointRight = new Point();
-            
+
             int currIndx = 0;
             int currTop = 0;
             bool searching = false;
@@ -859,7 +859,7 @@ namespace FaceCode
                 {
                     goingUp = false;
                     goingDown = true;
-                    if(searching)
+                    if (searching)
                     {
                         break;
                     }
@@ -870,7 +870,7 @@ namespace FaceCode
                     goingDown = false;
                     searching = true;
                 }
-                if(goingUp)
+                if (goingUp)
                 {
                     if (verticalHistogram[i] >= currTop)
                     {
@@ -943,7 +943,7 @@ namespace FaceCode
             int searchRegion = (int)(verticalHistogram.Length / 20);
             int jumpSize = (int)(0.35 * (double)(verticalHistogram.Max() - verticalHistogram.Min()));
 
-            for (int i = 0; i < verticalHistogram.Length - searchRegion; i++)
+            for (int i = 0; i < verticalHistogram.Length / 2; i++)
             {
                 int currLevel = verticalHistogram[i];
                 int nextLevel = verticalHistogram[i + searchRegion];
@@ -954,7 +954,7 @@ namespace FaceCode
                 }
             }
 
-            for (int i = verticalHistogram.Length - 1; i > searchRegion; i--)
+            for (int i = verticalHistogram.Length - 1; i > verticalHistogram.Length / 2; i--)
             {
                 int currLevel = verticalHistogram[i];
                 int nextLevel = verticalHistogram[i - searchRegion];
@@ -968,7 +968,7 @@ namespace FaceCode
             pointLeft.X = 0;
             pointLeft.Y = leftBorder + 10;
             pointRight.X = 0;
-            pointRight.Y = verticalHistogram.Length - rightBorder;
+            pointRight.Y = verticalHistogram.Length - (int)(1.5 * rightBorder);
 
             return new Point[] { pointLeft, pointRight };
         }
@@ -1058,6 +1058,7 @@ namespace FaceCode
 
         public static Tuple<ByteImage, float[]> ProcessPicture(ByteImage picture)
         {
+            float[] features = new float[4];
             ByteImage ori = new ByteImage(picture);
             ByteImage onlyFace = new ByteImage(picture);
             int CenterX = 0;
@@ -1070,7 +1071,6 @@ namespace FaceCode
             Binarization(picture, (int)(1.6 * (double)treshold));
             int[] horizontalHistogram = GetHorizontalHistogram(picture, 0);
             int[] verticalHistogram = GetVerticalHistogram(picture, 0);
-
             //WYGLADZANIE !! moving average
             horizontalHistogram = Smooth(horizontalHistogram);
             verticalHistogram = Smooth(verticalHistogram);
@@ -1094,7 +1094,9 @@ namespace FaceCode
             GrayScale(ori);
             MarkFaceCenter(ori, horizontalBorders.ElementAt(1), verticalBorders.ElementAt(1));
 
+
             //TU MAMY W MIARE TWARZ
+
             List<System.Drawing.Point> corners = DrawBorders(ori, horizontalBorders, verticalBorders, newColor);
             onlyFace = CutOffFace(corners, onlyFace);
             picture = new ByteImage(onlyFace);
@@ -1120,13 +1122,14 @@ namespace FaceCode
             Point[] liniaOczu = GetEyesLine(horizontalHistogram, verticalHistogram);
             Point[] lniaUst = GetMouthLine(horizontalHistogram, verticalHistogram);
 
+
             DrawLine(liniaSrodka, new byte[] { 255, 0, 255, 0 }, picture); //Green
             DrawLine(wysokoscTwarzy, new byte[] { 255, 255, 0, 0 }, picture); //Red
             DrawLine(szerokoscTwarzy, new byte[] { 255, 255, 0, 0 }, picture); //Red
             DrawLine(liniaOczu, new byte[] { 255, 0, 0, 255 }, picture); //Blue
             DrawLine(lniaUst, new byte[] { 255, 0, 255, 255 }, picture); //Turkus 
+            features = GetFloatFeatures(wysokoscTwarzy, szerokoscTwarzy, lniaUst, liniaOczu);
 
-            float[] features = GetFloatFeatures(wysokoscTwarzy, szerokoscTwarzy, lniaUst, liniaOczu);
 
             return new Tuple<ByteImage, float[]>(picture, features);
         }

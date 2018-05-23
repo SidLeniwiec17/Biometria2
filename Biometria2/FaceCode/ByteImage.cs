@@ -70,10 +70,13 @@ namespace FaceCode
         public void setPixel(int x, int y, byte[] color)
         {
             int offset = y * Stride + x * 4;
-            Pixels[offset] = color[0];
-            Pixels[offset + 1] = color[1];
-            Pixels[offset + 2] = color[2];
-            Pixels[offset + 3] = color[3];
+            if (offset + 3 < Pixels.Length && offset > 0)
+            {                
+                Pixels[offset] = color[0];
+                Pixels[offset + 1] = color[1];
+                Pixels[offset + 2] = color[2];
+                Pixels[offset + 3] = color[3];
+            }
         }
 
         public void setPixel(int x, int y, byte a, byte r, byte g, byte b)
