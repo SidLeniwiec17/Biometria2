@@ -715,34 +715,82 @@ namespace FaceCode
             return Values[mostCommonIndex];
         }
 
+        /* private static Point[] GetMouthLine(int[] horizontalHistogram, int[] verticalHistogram)
+         {
+             //od konjca pierwsze wzniesienie 
+             Point pointLeft = new Point();
+             Point pointRight = new Point();
+
+             int lowLevelStart = (int)(0.45 * (double)(verticalHistogram.Max() - verticalHistogram.Min()));
+             bool isInLowLevel = false;
+             int currTop = 0;
+             int currIndx = 0;
+
+             for (int i = verticalHistogram.Length - 1; i > verticalHistogram.Length / 2; i--)
+             {
+                 if (verticalHistogram[i] <= lowLevelStart)
+                 {
+                     isInLowLevel = true;
+                 }
+                 if (isInLowLevel && verticalHistogram[i] > lowLevelStart)
+                 {
+                     if (verticalHistogram[i] > currTop)
+                     {
+                         currTop = verticalHistogram[i];
+                         currIndx = i;
+                     }
+                 }
+                 if (currTop != 0 && isInLowLevel && verticalHistogram[i] < lowLevelStart)
+                 {
+                     break;
+                 }
+             }
+             int y = currIndx;
+             pointLeft.X = 0;
+             pointLeft.Y = y;
+             pointRight.X = verticalHistogram.Length - 1;
+             pointRight.Y = y;
+
+             return new Point[] { pointLeft, pointRight };
+         }*/
+
         private static Point[] GetMouthLine(int[] horizontalHistogram, int[] verticalHistogram)
         {
             //od konjca pierwsze wzniesienie 
             Point pointLeft = new Point();
             Point pointRight = new Point();
 
-            int lowLevelStart = (int)(0.45 * (double)(verticalHistogram.Max() - verticalHistogram.Min()));
-            bool isInLowLevel = false;
-            int currTop = 0;
-            int currIndx = 0;
 
+            //for (int i = verticalHistogram.Length - 1; i > verticalHistogram.Length / 2; i--)
+            int currIndx = 0;
+            int currTop = 0;
+            bool searching = false;
+            bool goingDown = false;
+            bool goingUp = false;
             for (int i = verticalHistogram.Length - 1; i > verticalHistogram.Length / 2; i--)
             {
-                if (verticalHistogram[i] <= lowLevelStart)
+                if (verticalHistogram[i] > verticalHistogram[i-1])
                 {
-                    isInLowLevel = true;
+                    goingUp = false;
+                    goingDown = true;
+                    if (searching)
+                    {
+                        break;
+                    }
                 }
-                if (isInLowLevel && verticalHistogram[i] > lowLevelStart)
+                else if (goingDown && verticalHistogram[i] < verticalHistogram[i-1])
                 {
-                    if (verticalHistogram[i] > currTop)
+                    goingUp = true;
+                    goingDown = false;
+                    searching = true;
+                }
+                if (goingUp)
+                {
+                    if (verticalHistogram[i] >= currTop)
                     {
                         currTop = verticalHistogram[i];
                         currIndx = i;
                     }
-                }
-                if (currTop != 0 && isInLowLevel && verticalHistogram[i] < lowLevelStart)
-                {
-                    break;
                 }
             }
             int y = currIndx;
@@ -754,13 +802,13 @@ namespace FaceCode
             return new Point[] { pointLeft, pointRight };
         }
 
-        private static Point[] GetEyesLine(int[] horizontalHistogram, int[] verticalHistogram)
+        /*private static Point[] GetEyesLine(int[] horizontalHistogram, int[] verticalHistogram)
         {
-            //od poczatku pierwsze wzniesienie 
+            od poczatku pierwsze wzniesienie 
             Point pointLeft = new Point();
             Point pointRight = new Point();
 
-            int lowLevelStart = (int)(0.45 * (double)(verticalHistogram.Max() - verticalHistogram.Min()));
+            int lowLevelStart = (int)(0.35 * (double)(verticalHistogram.Max() - verticalHistogram.Min()));
             bool isInLowLevel = false;
             int currTop = 0;
             int currIndx = 0;
@@ -784,6 +832,54 @@ namespace FaceCode
                     break;
                 }
             }
+            int y = currIndx;
+            pointLeft.X = 0;
+            pointLeft.Y = y;
+            pointRight.X = verticalHistogram.Length - 1;
+            pointRight.Y = y;
+            
+
+            return new Point[] { pointLeft, pointRight };
+        }*/
+
+        private static Point[] GetEyesLine(int[] horizontalHistogram, int[] verticalHistogram)
+        {
+            //od poczatku pierwsze wzniesienie 
+            Point pointLeft = new Point();
+            Point pointRight = new Point();
+            
+            int currIndx = 0;
+            int currTop = 0;
+            bool searching = false;
+            bool goingDown = false;
+            bool goingUp = false;
+            for (int i = verticalHistogram.Length / 10; i < verticalHistogram.Length / 2; i++)
+            {
+                if (verticalHistogram[i] > verticalHistogram[1 + i])
+                {
+                    goingUp = false;
+                    goingDown = true;
+                    if(searching)
+                    {
+                        break;
+                    }
+                }
+                else if (goingDown && verticalHistogram[i] < verticalHistogram[1 + i])
+                {
+                    goingUp = true;
+                    goingDown = false;
+                    searching = true;
+                }
+                if(goingUp)
+                {
+                    if (verticalHistogram[i] >= currTop)
+                    {
+                        currTop = verticalHistogram[i];
+                        currIndx = i;
+                    }
+                }
+            }
+
             int y = currIndx;
             pointLeft.X = 0;
             pointLeft.Y = y;
@@ -935,7 +1031,7 @@ namespace FaceCode
             //szerokosc do dlugosci
             double width = Math.Abs(szerokosc[0].X - szerokosc[1].X);
             double height = Math.Abs(wysokosc[0].Y - wysokosc[1].Y);
-            features[0] = (float)(width/height);
+            features[0] = (float)(width / height);
             //rozstaw oczy i usta
             double eyeMouthDistance = Math.Abs(usta[0].Y - oczy[0].Y);
             features[1] = (float)(eyeMouthDistance / height);
@@ -952,7 +1048,7 @@ namespace FaceCode
                 {
                     features[i] = 0.0f;
                 }
-                else if(features[i] > 1.0f)
+                else if (features[i] > 1.0f)
                 {
                     features[i] = 1.0f;
                 }
