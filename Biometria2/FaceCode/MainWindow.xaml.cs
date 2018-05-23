@@ -43,6 +43,9 @@ namespace FaceCode
         public WriteableBitmap WriteablePic2ProcessedBtm;
         public ByteImage pic2ProcessedByteImage;
 
+        float[] features1;
+        float[] features2;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -65,6 +68,7 @@ namespace FaceCode
             {
                 BlakWait.Visibility = Visibility.Visible;
                 await LoadImages(new BitmapImage(new Uri(dialog.FileName)), dialog.FileName, 0);
+                AnswerLabel.Content = "";
                 BlakWait.Visibility = Visibility.Collapsed;
             }
         }
@@ -82,6 +86,7 @@ namespace FaceCode
             {
                 BlakWait.Visibility = Visibility.Visible;
                 await LoadImages(new BitmapImage(new Uri(dialog.FileName)), dialog.FileName, 1);
+                AnswerLabel.Content = "";
                 BlakWait.Visibility = Visibility.Collapsed;
             }
         }
@@ -102,7 +107,16 @@ namespace FaceCode
 
         private void Compare_Button(object sender, RoutedEventArgs e)
         {
-
+            if(features1?.Length > 0 && features2?.Length > 0)
+            {
+                float totalSum = 0.0f;
+                for (int i = 0; i < features1.Length; i++)
+                {
+                    totalSum += Math.Abs(features1[i] - features2[i]);
+                }
+                double answ = (1 - (double)(totalSum / (features2.Length * 1.0f))) * 100.0;
+                AnswerLabel.Content = answ + " %";
+            }
         }
 
         private async Task LoadImages(BitmapImage btmi, string FileName, int mode)
@@ -126,7 +140,9 @@ namespace FaceCode
                 await Task.Run(() =>
                 {
                     pic1ProcessedByteImage = new ByteImage(pic1OriginalByteImage);
-                    pic1ProcessedByteImage = Helper.ProcessPicture(pic1ProcessedByteImage);
+                    var a = Helper.ProcessPicture(pic1ProcessedByteImage);
+                    pic1ProcessedByteImage = a.Item1;
+                    features1 = a.Item2;
                     pic1Processed = true;
                 });
             }
@@ -135,7 +151,9 @@ namespace FaceCode
                 await Task.Run(() =>
                 {
                     pic2ProcessedByteImage = new ByteImage(pic2OriginalByteImage);
-                    pic2ProcessedByteImage = Helper.ProcessPicture(pic2ProcessedByteImage);
+                    var b = Helper.ProcessPicture(pic2ProcessedByteImage);
+                    pic2ProcessedByteImage = b.Item1;
+                    features2 = b.Item2;
                     pic2Processed = true;
                 });
             }
@@ -161,6 +179,7 @@ namespace FaceCode
                 pic1ProcessedByteImage = new ByteImage(WriteablePic1ProcessedBtm, pic1ProcessedBtm);
                 pic1Loaded = true;
                 pic1Processed = false;
+                features1 = null;
             }
             else if (mode == 1)
             {
@@ -176,6 +195,7 @@ namespace FaceCode
                 pic2ProcessedByteImage = new ByteImage(WriteablePic2ProcessedBtm, pic2ProcessedBtm);
                 pic2Loaded = true;
                 pic2Processed = false;
+                features2 = null;
             }
         }
     }

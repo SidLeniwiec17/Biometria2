@@ -726,7 +726,7 @@ namespace FaceCode
             int currTop = 0;
             int currIndx = 0;
 
-            for (int i = verticalHistogram.Length -1; i > verticalHistogram.Length / 2; i--)
+            for (int i = verticalHistogram.Length - 1; i > verticalHistogram.Length / 2; i--)
             {
                 if (verticalHistogram[i] <= lowLevelStart)
                 {
@@ -805,11 +805,11 @@ namespace FaceCode
             int searchRegion = (int)(horizontalHistogram.Length / 20);
             int jumpSize = (int)(0.3 * (double)(horizontalHistogram.Max() - horizontalHistogram.Min()));
 
-            for(int i = 0; i < horizontalHistogram.Length - searchRegion; i ++)
+            for (int i = 0; i < horizontalHistogram.Length - searchRegion; i++)
             {
                 int currLevel = horizontalHistogram[i];
                 int nextLevel = horizontalHistogram[i + searchRegion];
-                if(Math.Abs(currLevel - nextLevel) >= jumpSize)
+                if (Math.Abs(currLevel - nextLevel) >= jumpSize)
                 {
                     leftBorder = ((2 * i) + searchRegion) / 2;
                     break;
@@ -862,9 +862,9 @@ namespace FaceCode
             {
                 int currLevel = verticalHistogram[i];
                 int nextLevel = verticalHistogram[i - searchRegion];
-                if (Math.Abs(currLevel - nextLevel) >= (0.8 *jumpSize))
+                if (Math.Abs(currLevel - nextLevel) >= (0.8 * jumpSize))
                 {
-                    rightBorder = ( i + searchRegion) ;
+                    rightBorder = (i + searchRegion);
                     break;
                 }
             }
@@ -872,7 +872,7 @@ namespace FaceCode
             pointLeft.X = 0;
             pointLeft.Y = leftBorder + 10;
             pointRight.X = 0;
-            pointRight.Y = verticalHistogram.Length - rightBorder ;
+            pointRight.Y = verticalHistogram.Length - rightBorder;
 
             return new Point[] { pointLeft, pointRight };
         }
@@ -886,7 +886,7 @@ namespace FaceCode
             int indx = 0;
 
             for (int i = horizontalHistogram.Length / 4; i < horizontalHistogram.Length - (horizontalHistogram.Length / 4); i++)
-            {               
+            {
                 if (horizontalHistogram[i] < min)
                 {
                     min = horizontalHistogram[i];
@@ -902,39 +902,65 @@ namespace FaceCode
             return new Point[] { pointLeft, pointRight };
         }
 
-        public static void DrawLine(Point[] points , byte[] color, ByteImage picture)
+        public static void DrawLine(Point[] points, byte[] color, ByteImage picture)
         {
             bool horizontal = false;
 
-            try
-            {
-                if (points[1].X - points[0].X > 0)
-                {
-                    horizontal = true;
-                }
 
-                if (horizontal)
-                {
-                    for (int x = points[0].X; x < points[1].X; x++)
-                    {
-                        picture.setPixel(x, points[0].Y, color);
-                    }
-                }
-                else
-                {
-                    for (int y = points[0].Y; y < points[1].Y; y++)
-                    {
-                        picture.setPixel(points[0].X, y, color);
-                    }
-                }
-            }
-            catch(Exception ex)
+            if (points[1].X - points[0].X > 0)
             {
-                ;
+                horizontal = true;
             }
+
+            if (horizontal)
+            {
+                for (int x = points[0].X; x < points[1].X; x++)
+                {
+                    picture.setPixel(x, points[0].Y, color);
+                }
+            }
+            else
+            {
+                for (int y = points[0].Y; y < points[1].Y; y++)
+                {
+                    picture.setPixel(points[0].X, y, color);
+                }
+            }
+
         }
 
-        public static ByteImage ProcessPicture(ByteImage picture)
+        public static float[] GetFloatFeatures(Point[] wysokosc, Point[] szerokosc, Point[] usta, Point[] oczy)
+        {
+            float[] features = new float[4];
+            //szerokosc do dlugosci
+            double width = Math.Abs(szerokosc[0].X - szerokosc[1].X);
+            double height = Math.Abs(wysokosc[0].Y - wysokosc[1].Y);
+            features[0] = (float)(width/height);
+            //rozstaw oczy i usta
+            double eyeMouthDistance = Math.Abs(usta[0].Y - oczy[0].Y);
+            features[1] = (float)(eyeMouthDistance / height);
+            //lokalizacja ust
+            double eyeLocalisation = Math.Abs(wysokosc[1].Y - oczy[0].Y);
+            features[2] = (float)(eyeLocalisation / height);
+            //lokalizacja oczu
+            double mouthLocalisation = Math.Abs(wysokosc[1].Y - usta[0].Y);
+            features[3] = (float)(mouthLocalisation / height);
+
+            for (int i = 0; i < features.Length; i++)
+            {
+                if (features[i] < 0.0f)
+                {
+                    features[i] = 0.0f;
+                }
+                else if(features[i] > 1.0f)
+                {
+                    features[i] = 1.0f;
+                }
+            }
+            return features;
+        }
+
+        public static Tuple<ByteImage, float[]> ProcessPicture(ByteImage picture)
         {
             ByteImage ori = new ByteImage(picture);
             ByteImage onlyFace = new ByteImage(picture);
@@ -1004,7 +1030,9 @@ namespace FaceCode
             DrawLine(liniaOczu, new byte[] { 255, 0, 0, 255 }, picture); //Blue
             DrawLine(lniaUst, new byte[] { 255, 0, 255, 255 }, picture); //Turkus 
 
-            return picture;
+            float[] features = GetFloatFeatures(wysokoscTwarzy, szerokoscTwarzy, lniaUst, liniaOczu);
+
+            return new Tuple<ByteImage, float[]>(picture, features);
         }
     }
 }
