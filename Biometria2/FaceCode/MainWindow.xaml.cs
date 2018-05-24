@@ -115,7 +115,7 @@ namespace FaceCode
                     totalSum += Math.Abs(features1[i] - features2[i]);
                 }
                 double answ = (1 - (double)(totalSum / (features2.Length * 1.0f))) * 100.0;
-                AnswerLabel.Content = answ + " %";
+                AnswerLabel.Content = Math.Round(answ,2) + " %";
             }
         }
 

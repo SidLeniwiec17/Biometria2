@@ -1063,6 +1063,7 @@ namespace FaceCode
             ByteImage onlyFace = new ByteImage(picture);
             int CenterX = 0;
             int CenterY = 0;
+
             Test(picture);
             int treshold = Blackout(picture);
             GaussFiltr(picture);
@@ -1098,6 +1099,7 @@ namespace FaceCode
             //TU MAMY W MIARE TWARZ
 
             List<System.Drawing.Point> corners = DrawBorders(ori, horizontalBorders, verticalBorders, newColor);
+            picture = ori;
             onlyFace = CutOffFace(corners, onlyFace);
             picture = new ByteImage(onlyFace);
 
